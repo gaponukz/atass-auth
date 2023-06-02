@@ -51,7 +51,7 @@ func (contr *Controller) Singin(responseWriter http.ResponseWriter, request *htt
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(contr.Settings.JwtSecret)
+	tokenString, err := token.SignedString([]byte(contr.Settings.JwtSecret))
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
