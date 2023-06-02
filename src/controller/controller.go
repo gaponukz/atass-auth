@@ -3,22 +3,8 @@ package controller
 import (
 	"auth/src/settings"
 	"auth/src/storage"
-	"encoding/json"
 	"net/http"
-	"time"
-
-	"github.com/golang-jwt/jwt/v4"
 )
-
-type Credentials struct {
-	Gmail    string `json:"gmail"`
-	Password string `json:"password"`
-}
-
-type Claims struct {
-	FullName string `json:"fullName"`
-	jwt.RegisteredClaims
-}
 
 type Controller struct {
 	Storage  storage.IUserStorage
@@ -26,32 +12,14 @@ type Controller struct {
 }
 
 func (contr *Controller) Singin(responseWriter http.ResponseWriter, request *http.Request) {
-	var creds Credentials
+	expectedUser, err := getRegisteredUserFromRequestBody(request, contr.Storage)
 
-	err := json.NewDecoder(request.Body).Decode(&creds)
 	if err != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	expectedUser, err := contr.Storage.GetByGmail(creds.Gmail)
-
-	if err != nil || expectedUser.Password != creds.Password {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	expirationTime := time.Now().Add(5 * time.Minute)
-
-	claims := &Claims{
-		FullName: expectedUser.FullName,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(contr.Settings.JwtSecret))
+	token, expirationTime, err := getTemporaryToken(expectedUser.FullName, contr.Settings.JwtSecret)
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
@@ -60,7 +28,7 @@ func (contr *Controller) Singin(responseWriter http.ResponseWriter, request *htt
 
 	http.SetCookie(responseWriter, &http.Cookie{
 		Name:    "token",
-		Value:   tokenString,
+		Value:   token,
 		Expires: expirationTime,
 	})
 
