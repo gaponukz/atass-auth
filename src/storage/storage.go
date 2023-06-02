@@ -1,8 +1,12 @@
 package storage
 
-type IStorage[Entity any] interface {
-	Create(Entity) error
-	Update(Entity) error
-	ReadAll() ([]Entity, error)
-	Delete(Entity) error
+import "auth/src/entities"
+
+type IUserStorage interface {
+	Create(entities.User) error
+	Update(entities.User) error
+	ReadAll() ([]entities.User, error)
+	Delete(entities.User) error
+
+	GetByGmail(string) (entities.User, error)
 }
