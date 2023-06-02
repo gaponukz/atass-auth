@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"auth/src/settings"
 	"auth/src/storage"
 	"encoding/json"
 	"net/http"
@@ -8,8 +9,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 )
-
-var jwtKey = []byte("secret") // TODO: add settings
 
 type Credentials struct {
 	Gmail    string `json:"gmail"`
@@ -22,7 +21,8 @@ type Claims struct {
 }
 
 type Controller struct {
-	Storage storage.IUserStorage
+	Storage  storage.IUserStorage
+	Settings settings.Settings
 }
 
 func (contr *Controller) Singin(responseWriter http.ResponseWriter, request *http.Request) {
@@ -42,6 +42,7 @@ func (contr *Controller) Singin(responseWriter http.ResponseWriter, request *htt
 	}
 
 	expirationTime := time.Now().Add(5 * time.Minute)
+
 	claims := &Claims{
 		FullName: expectedUser.FullName,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -50,7 +51,8 @@ func (contr *Controller) Singin(responseWriter http.ResponseWriter, request *htt
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString(contr.Settings.JwtSecret)
+
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return

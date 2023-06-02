@@ -2,6 +2,7 @@ package main
 
 import (
 	"auth/src/controller"
+	"auth/src/settings"
 	"auth/src/storage"
 	"fmt"
 	"net/http"
@@ -9,8 +10,12 @@ import (
 
 func main() {
 	httpRoute := http.NewServeMux()
+	settingExporter := settings.MemorySettingsExporter{}
+	settings, _ := settingExporter.Load()
+
 	routerService := controller.Controller{
-		Storage: &storage.MemoryStorage{},
+		Storage:  &storage.MemoryStorage{},
+		Settings: settings,
 	}
 
 	httpRoute.HandleFunc("/signin", routerService.Singin)
