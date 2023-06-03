@@ -2,18 +2,12 @@ package controller
 
 import (
 	"auth/src/entities"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 )
-
-type credentials struct {
-	Gmail    string `json:"gmail"`
-	Password string `json:"password"`
-}
 
 type claims struct {
 	FullName string `json:"fullName"`
@@ -25,9 +19,8 @@ type GetByGmailAbleStorage interface {
 }
 
 func getRegisteredUserFromRequestBody(request *http.Request, storage GetByGmailAbleStorage) (entities.User, error) {
-	var creds credentials
+	creds, err := getUserCredentialsFromBody(request)
 
-	err := json.NewDecoder(request.Body).Decode(&creds)
 	if err != nil {
 		return entities.User{}, err
 	}

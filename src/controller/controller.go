@@ -12,7 +12,7 @@ type Controller struct {
 	Settings settings.Settings
 }
 
-func (contr *Controller) Singin(responseWriter http.ResponseWriter, request *http.Request) {
+func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *http.Request) {
 	expectedUser, err := getRegisteredUserFromRequestBody(request, contr.Storage)
 
 	if err != nil {
@@ -55,6 +55,36 @@ func (contr *Controller) Welcome(responseWriter http.ResponseWriter, request *ht
 	}
 
 	responseWriter.Write([]byte(fmt.Sprintf("Welcome %s!", userFullName)))
+}
+
+func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *http.Request) {
+	creds, err := getUserCredentialsFromBody(request)
+
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = registerUser(creds, contr.Storage)
+
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		responseWriter.Write([]byte(err.Error()))
+		return
+	}
+
+	token, expirationTime, err := getTemporaryToken(creds.FullName, contr.Settings.JwtSecret)
+
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(responseWriter, &http.Cookie{
+		Name:    "token",
+		Value:   token,
+		Expires: expirationTime,
+	})
 }
 
 func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *http.Request) {}

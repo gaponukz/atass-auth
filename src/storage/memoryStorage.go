@@ -5,32 +5,39 @@ import (
 	"fmt"
 )
 
-type MemoryStorage struct{}
+type UserMemoryStorage struct {
+	Users []entities.User
+}
 
-func (stor *MemoryStorage) Create(entities.User) error {
+func (strg *UserMemoryStorage) Create(user entities.User) error {
+	strg.Users = append(strg.Users, user)
 	return nil
 }
 
-func (stor *MemoryStorage) Update(entities.User) error {
-	return nil
+func (stor *UserMemoryStorage) ReadAll() ([]entities.User, error) {
+	return stor.Users, nil
 }
 
-func (stor *MemoryStorage) ReadAll() ([]entities.User, error) {
-	users := []entities.User{
-		{Gmail: "user1@gmail.com", Password: "12345", FullName: "Anna Dou"},
-		{Gmail: "user2@gmail.com", Password: "hvdavf", FullName: "Vlad Feq"},
-		{Gmail: "user3@gmail.com", Password: "ahevre", FullName: "Alex Ogh"},
-		{Gmail: "user4@gmail.com", Password: "3qbduag3", FullName: "Max Daz"},
+func (strg *UserMemoryStorage) Delete(userToRemove entities.User) error {
+	index := -1
+
+	for idx, user := range strg.Users {
+		if user.Gmail == userToRemove.Gmail {
+			index = idx
+			break
+		}
 	}
 
-	return users, nil
-}
+	if index == -1 {
+		return fmt.Errorf("not found")
+	}
 
-func (stor *MemoryStorage) Delete(entities.User) error {
+	strg.Users = append(strg.Users[:index], strg.Users[index+1])
+
 	return nil
 }
 
-func (stor *MemoryStorage) GetByGmail(gmail string) (entities.User, error) {
+func (stor *UserMemoryStorage) GetByGmail(gmail string) (entities.User, error) {
 	var userId int = -1
 	users, err := stor.ReadAll()
 

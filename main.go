@@ -14,14 +14,15 @@ func main() {
 	settings, _ := settingExporter.Load()
 
 	routerService := controller.Controller{
-		Storage:  &storage.MemoryStorage{},
+		Storage:  &storage.UserMemoryStorage{},
 		Settings: settings,
 	}
 
-	httpRoute.HandleFunc("/signin", routerService.Singin)
+	httpRoute.HandleFunc("/signup", routerService.Signup)
+	httpRoute.HandleFunc("/signin", routerService.Signin)
+	httpRoute.HandleFunc("/welcome", routerService.Welcome)
 	httpRoute.HandleFunc("/refresh", routerService.Refresh)
 	httpRoute.HandleFunc("/logout", routerService.Logout)
-	httpRoute.HandleFunc("/welcome", routerService.Welcome)
 
 	server := http.Server{
 		Addr:    ":8080",
