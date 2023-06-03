@@ -64,3 +64,17 @@ func getTemporaryToken(userFullName, jwtSecret string) (string, time.Time, error
 
 	return tokenString, expirationTime, nil
 }
+
+func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (string, error) {
+	claims := &claims{}
+
+	token, err := jwt.ParseWithClaims(cookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtSecret), nil
+	})
+
+	if !token.Valid {
+		return "", fmt.Errorf("unauthorized")
+	}
+
+	return claims.FullName, err
+}

@@ -3,6 +3,7 @@ package controller
 import (
 	"auth/src/settings"
 	"auth/src/storage"
+	"fmt"
 	"net/http"
 )
 
@@ -34,8 +35,28 @@ func (contr *Controller) Singin(responseWriter http.ResponseWriter, request *htt
 
 }
 
+func (contr *Controller) Welcome(responseWriter http.ResponseWriter, request *http.Request) {
+	tokenCookie, err := request.Cookie("token")
+
+	if err != nil {
+		if err == http.ErrNoCookie {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	userFullName, err := getAuthorizedUserDataFromCookie(tokenCookie, contr.Settings.JwtSecret)
+
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	responseWriter.Write([]byte(fmt.Sprintf("Welcome %s!", userFullName)))
+}
+
 func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *http.Request) {}
 
 func (contr *Controller) Logout(responseWriter http.ResponseWriter, request *http.Request) {}
-
-func (contr *Controller) Welcome(responseWriter http.ResponseWriter, request *http.Request) {}
