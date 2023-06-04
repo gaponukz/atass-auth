@@ -20,7 +20,7 @@ func main() {
 		Settings: settings,
 		RegistrationService: registration.RegistrationService{
 			UserStorage:       userStorage,
-			FutureUserStorage: &storage.FutureUserMemoryStorage{},
+			FutureUserStorage: storage.NewFutureUserMemoryStorage(),
 			Notify: func(gmail, key string) error {
 				fmt.Printf("sent gmail notification for %s with key: %s", gmail, key)
 				return nil
