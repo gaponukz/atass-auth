@@ -1,11 +1,25 @@
 package settings
 
+import (
+	"os"
+
+	"github.com/joho/godotenv"
+)
+
 type Settings struct {
-	JwtSecret string `json:"jwtSecret"`
+	JwtSecret     string `json:"jwtSecret"`
+	Gmail         string `json:"gmail"`
+	GmailPassword string `json:"gmailPassword"`
 }
 
-type MemorySettingsExporter struct{}
+type DotEnvSettings struct{}
 
-func (s *MemorySettingsExporter) Load() (Settings, error) {
-	return Settings{JwtSecret: "secret"}, nil
+func (sts DotEnvSettings) Load() Settings {
+	godotenv.Load()
+
+	return Settings{
+		JwtSecret:     os.Getenv("jwtSecret"),
+		Gmail:         os.Getenv("gmail"),
+		GmailPassword: os.Getenv("gmailPassword"),
+	}
 }

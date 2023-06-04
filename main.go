@@ -1,19 +1,26 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
+
 	"auth/src/controller"
+	"auth/src/notifier"
 	"auth/src/registration"
 	"auth/src/settings"
 	"auth/src/storage"
-	"fmt"
-	"net/http"
 )
 
 func main() {
 	httpRoute := http.NewServeMux()
-	settingExporter := settings.MemorySettingsExporter{}
-	settings, _ := settingExporter.Load()
+	settingExporter := settings.DotEnvSettings{}
+	settings := settingExporter.Load()
 	userStorage := &storage.UserMemoryStorage{}
+
+	sendGmail := notifier.SendEmailNoificationFactory(notifier.SendFrom{
+		Gmail:    settings.Gmail,
+		Password: settings.GmailPassword,
+	})
 
 	routerService := controller.Controller{
 		Storage:  userStorage,
@@ -22,8 +29,7 @@ func main() {
 			UserStorage:       userStorage,
 			FutureUserStorage: storage.NewFutureUserMemoryStorage(),
 			Notify: func(gmail, key string) error {
-				fmt.Printf("sent gmail notification for %s with key: %s", gmail, key)
-				return nil
+				return sendGmail(gmail, "Confirm Email", notifier.GenerateConfirmCodeLetter(key))
 			},
 		},
 	}
