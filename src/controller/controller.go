@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"auth/src/entities"
+	"auth/src/registration"
 	"auth/src/settings"
 	"auth/src/storage"
 	"fmt"
@@ -8,8 +10,9 @@ import (
 )
 
 type Controller struct {
-	Storage  storage.IUserStorage
-	Settings settings.Settings
+	Storage             storage.IUserStorage
+	Settings            settings.Settings
+	RegistrationService registration.RegistrationService
 }
 
 func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *http.Request) {
@@ -32,7 +35,6 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 		Value:   token,
 		Expires: expirationTime,
 	})
-
 }
 
 func (contr *Controller) Welcome(responseWriter http.ResponseWriter, request *http.Request) {
@@ -65,15 +67,42 @@ func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *htt
 		return
 	}
 
-	err = registerUser(creds, contr.Storage)
+	key, err := contr.RegistrationService.GetInformatedFutureUser(creds.Gmail)
 
 	if err != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
-		responseWriter.Write([]byte(err.Error()))
+		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	token, expirationTime, err := getTemporaryToken(creds.FullName, contr.Settings.JwtSecret)
+	err = contr.RegistrationService.AddUserToFutureStorage(entities.FutureUser{
+		UniqueKey: key,
+		User: entities.User{
+			Gmail:    creds.Gmail,
+			Password: creds.Password,
+			FullName: creds.FullName,
+		},
+	})
+
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter, request *http.Request) {
+	user, err := getGmailConfirmationFromBody(request)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = contr.RegistrationService.RemoveUserFromFutureStorage(user)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	token, expirationTime, err := getTemporaryToken(user.FullName, contr.Settings.JwtSecret)
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
