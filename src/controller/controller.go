@@ -7,6 +7,7 @@ import (
 	"auth/src/storage"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type Controller struct {
@@ -116,6 +117,47 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 	})
 }
 
-func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *http.Request) {}
+func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *http.Request) {
+	tokenCookie, err := request.Cookie("token")
 
-func (contr *Controller) Logout(responseWriter http.ResponseWriter, request *http.Request) {}
+	if err != nil {
+		if err == http.ErrNoCookie {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	claims, tokenErr := parseClaimsFromToken(tokenCookie.Value, contr.Settings.JwtSecret)
+
+	if tokenErr != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	newToken, expirationTime, newTokernErr := genarateNewTemporaryTokenFromClaims(claims, contr.Settings.JwtSecret)
+
+	if newTokernErr != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(responseWriter, &http.Cookie{
+		Name:    "token",
+		Value:   newToken,
+		Expires: expirationTime,
+	})
+}
+
+func (contr *Controller) Logout(responseWriter http.ResponseWriter, request *http.Request) {
+	http.SetCookie(responseWriter, &http.Cookie{
+		Name:    "token",
+		Expires: time.Now(),
+	})
+}
