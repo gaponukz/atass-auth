@@ -15,7 +15,9 @@ func main() {
 	httpRoute := http.NewServeMux()
 	settingExporter := settings.DotEnvSettings{}
 	settings := settingExporter.Load()
-	userStorage := &storage.UserMemoryStorage{}
+	userStorage := &storage.UserJsonFileStorage{
+		FilePath: "users.json",
+	}
 
 	sendGmail := notifier.SendEmailNoificationFactory(notifier.SendFrom{
 		Gmail:    settings.Gmail,
