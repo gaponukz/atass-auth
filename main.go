@@ -34,16 +34,17 @@ func main() {
 		},
 	}
 
-	httpRoute.HandleFunc("/signup", routerService.Signup)
-	httpRoute.HandleFunc("/confirm", routerService.ConfirmRegistration)
-	httpRoute.HandleFunc("/signin", routerService.Signin)
+	httpRoute.HandleFunc("/signup", controller.RequiredMethod(routerService.Signup, http.MethodPost))
+	httpRoute.HandleFunc("/confirm", controller.RequiredMethod(routerService.ConfirmRegistration, http.MethodPost))
+	httpRoute.HandleFunc("/signin", controller.RequiredMethod(routerService.Signin, http.MethodPost))
+
 	httpRoute.HandleFunc("/welcome", routerService.Welcome)
 	httpRoute.HandleFunc("/refresh", routerService.Refresh)
 	httpRoute.HandleFunc("/logout", routerService.Logout)
 
 	server := http.Server{
 		Addr:    ":8080",
-		Handler: httpRoute,
+		Handler: controller.LoggingMiddleware(httpRoute),
 	}
 
 	fmt.Println("⚡️[server]: Server is running at http://localhost:8080")
