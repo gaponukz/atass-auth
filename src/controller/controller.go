@@ -24,7 +24,14 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 		return
 	}
 
-	token, expirationTime, err := getTemporaryToken(expectedUser.FullName, contr.Settings.JwtSecret)
+	token, expirationTime, err := getTemporaryToken(
+		userInfoDTO{
+			FullName:          expectedUser.FullName,
+			RememberHim:       expectedUser.RememberHim,
+			PurchasedRouteIds: expectedUser.PurchasedRouteIds,
+		},
+		contr.Settings.JwtSecret,
+	)
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
@@ -50,14 +57,15 @@ func (contr *Controller) Welcome(responseWriter http.ResponseWriter, request *ht
 		return
 	}
 
-	userFullName, err := getAuthorizedUserDataFromCookie(tokenCookie, contr.Settings.JwtSecret)
+	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, contr.Settings.JwtSecret)
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	responseWriter.Write([]byte(fmt.Sprintf("Welcome %s!", userFullName)))
+	response := fmt.Sprintf("Hi %s, remember? - %t", dto.FullName, dto.RememberHim)
+	responseWriter.Write([]byte(response))
 }
 
 func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *http.Request) {
@@ -78,9 +86,11 @@ func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *htt
 	err = contr.RegistrationService.AddUserToFutureStorage(entities.FutureUser{
 		UniqueKey: key,
 		User: entities.User{
-			Gmail:    creds.Gmail,
-			Password: creds.Password,
-			FullName: creds.FullName,
+			Gmail:       creds.Gmail,
+			Password:    creds.Password,
+			FullName:    creds.FullName,
+			Phone:       creds.Phone,
+			RememberHim: creds.RememberHim,
 		},
 	})
 
@@ -103,7 +113,14 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 		return
 	}
 
-	token, expirationTime, err := getTemporaryToken(user.FullName, contr.Settings.JwtSecret)
+	token, expirationTime, err := getTemporaryToken(
+		userInfoDTO{
+			FullName:          user.FullName,
+			RememberHim:       user.RememberHim,
+			PurchasedRouteIds: user.PurchasedRouteIds,
+		},
+		contr.Settings.JwtSecret,
+	)
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
@@ -139,7 +156,6 @@ func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *ht
 
 	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
 		responseWriter.WriteHeader(http.StatusBadRequest)
-		fmt.Println("time error:", time.Until(claims.ExpiresAt.Time))
 		return
 	}
 

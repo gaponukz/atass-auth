@@ -9,8 +9,14 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+type userInfoDTO struct {
+	FullName          string   `json:"fullName"`
+	RememberHim       bool     `json:"rememberHim"`
+	PurchasedRouteIds []string `json:"purchasedRouteIds"`
+}
+
 type claims struct {
-	FullName string `json:"fullName"`
+	userInfoDTO
 	jwt.RegisteredClaims
 }
 
@@ -38,14 +44,14 @@ func getRegisteredUserFromRequestBody(request *http.Request, storage GetByGmailA
 	return expectedUser, nil
 }
 
-func getTemporaryToken(userFullName, jwtSecret string) (string, time.Time, error) {
-	expirationTime := time.Now().Add(5 * time.Minute)
+func getTemporaryToken(infoDto userInfoDTO, jwtSecret string) (string, time.Time, error) {
+	expirationTime := getExpirationTime(infoDto.RememberHim)
 
 	claims := &claims{
-		FullName: userFullName,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
+		userInfoDTO: infoDto,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -58,7 +64,7 @@ func getTemporaryToken(userFullName, jwtSecret string) (string, time.Time, error
 	return tokenString, expirationTime, nil
 }
 
-func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (string, error) {
+func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (userInfoDTO, error) {
 	claims := &claims{}
 
 	token, err := jwt.ParseWithClaims(cookie.Value, claims, func(token *jwt.Token) (interface{}, error) {
@@ -66,10 +72,16 @@ func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (str
 	})
 
 	if !token.Valid {
-		return "", fmt.Errorf("unauthorized")
+		return userInfoDTO{}, fmt.Errorf("unauthorized")
 	}
 
-	return claims.FullName, err
+	dto := userInfoDTO{
+		FullName:          claims.FullName,
+		RememberHim:       claims.RememberHim,
+		PurchasedRouteIds: claims.PurchasedRouteIds,
+	}
+
+	return dto, err
 }
 
 func parseClaimsFromToken(token, secret string) (*claims, error) {
@@ -90,7 +102,7 @@ func parseClaimsFromToken(token, secret string) (*claims, error) {
 }
 
 func genarateNewTemporaryTokenFromClaims(oldClaims *claims, secret string) (string, time.Time, error) {
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := getExpirationTime(oldClaims.RememberHim)
 	oldClaims.ExpiresAt = jwt.NewNumericDate(expirationTime)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, oldClaims)
 	tockenStr, err := token.SignedString([]byte(secret))

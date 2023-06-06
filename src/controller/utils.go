@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 )
 
 type credentials struct {
@@ -13,8 +14,18 @@ type credentials struct {
 }
 
 type userCredentialsnDTO struct {
-	FullName string `json:"fullName"`
+	FullName    string `json:"fullName"`
+	Phone       string `json:"phone"`
+	RememberHim bool   `json:"rememberHim"`
 	credentials
+}
+
+func getExpirationTime(remember bool) time.Time {
+	if remember {
+		return time.Now().Add(24 * 11 * time.Hour)
+	}
+
+	return time.Now().Add(10 * time.Minute)
 }
 
 func decodeRequestBody(request *http.Request, data interface{}) error {

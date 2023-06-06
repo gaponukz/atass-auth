@@ -50,5 +50,6 @@ func (service *RegistrationService) RemoveUserFromFutureStorage(user entities.Fu
 		Gmail:    user.Gmail,
 		Password: user.Password,
 		FullName: user.FullName,
+		Phone:    user.Phone,
 	})
 }

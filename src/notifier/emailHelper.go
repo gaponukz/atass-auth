@@ -6,7 +6,7 @@ import (
 )
 
 func GenerateConfirmCodeLetter(code string) string {
-	data, err := os.ReadFile("letter.html")
+	data, err := os.ReadFile("letters/letter.html")
 
 	if err != nil {
 		panic("file not found")
