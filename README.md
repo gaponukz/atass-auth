@@ -62,3 +62,11 @@ This document provides an overview of the API endpoints and request bodies for t
 - URL: `/welcome`
 - Method: `GET`
 - Description: returns some user info.
+
+## Settings
+Before usage you need to create `.env` file:
+```env
+gmail=user@gmail.com
+gmailPassword=userpassowrf123
+jwtSecret=secret
+```
