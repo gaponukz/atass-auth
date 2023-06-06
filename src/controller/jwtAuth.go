@@ -75,7 +75,7 @@ func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (str
 func parseClaimsFromToken(token, secret string) (*claims, error) {
 	_claims := &claims{}
 	tkn, err := jwt.ParseWithClaims(token, _claims, func(token *jwt.Token) (interface{}, error) {
-		return secret, nil
+		return []byte(secret), nil
 	})
 
 	if err != nil {
@@ -93,7 +93,7 @@ func genarateNewTemporaryTokenFromClaims(oldClaims *claims, secret string) (stri
 	expirationTime := time.Now().Add(5 * time.Minute)
 	oldClaims.ExpiresAt = jwt.NewNumericDate(expirationTime)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, oldClaims)
-	tockenStr, err := token.SignedString(secret)
+	tockenStr, err := token.SignedString([]byte(secret))
 
 	return tockenStr, expirationTime, err
 }

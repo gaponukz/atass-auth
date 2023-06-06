@@ -133,11 +133,13 @@ func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *ht
 
 	if tokenErr != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
+		fmt.Println("tokenErr:", tokenErr)
 		return
 	}
 
 	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
 		responseWriter.WriteHeader(http.StatusBadRequest)
+		fmt.Println("time error:", time.Until(claims.ExpiresAt.Time))
 		return
 	}
 
