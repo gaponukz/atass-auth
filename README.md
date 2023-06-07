@@ -1,4 +1,7 @@
-# API Documentation
+# JWT auth for Atass with Golang
+<p align="center" width="100%">
+    <img width="25%" src="https://github.com/gaponukz/atass-auth/assets/49754258/69b6c02a-2358-4e7c-89cd-d590a891905e">
+</p>
 
 This document provides an overview of the API endpoints and request bodies for the simple JWT implementation. <br/>
 <b>Important:</b> The token is stored in a cookie, so there is no need to pass it in the headers etc.
