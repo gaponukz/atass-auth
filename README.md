@@ -66,10 +66,20 @@ This document provides an overview of the API endpoints and request bodies for t
 - Method: `GET`
 - Description: returns some user info.
 
-## Settings
+## Before start
+### Settings
 Before usage you need to create `.env` file:
 ```env
 gmail=user@gmail.com
 gmailPassword=userpassowrf123
 jwtSecret=secret
+```
+### Dependencies
+* Redis client
+```bash
+docker run -d --name redis-stack-server -p 6379:6379 redis/redis-stack-server:latest
+```
+* Golang packages
+```bash
+go mod download
 ```
