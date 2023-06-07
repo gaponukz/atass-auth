@@ -79,3 +79,32 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(responseWriter, request)
 	})
 }
+
+func OnlyAuthenticated(router RouterFunc, JwtSecret string) RouterFunc {
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		tokenCookie, err := request.Cookie("token")
+
+		if err != nil {
+			if err == http.ErrNoCookie {
+				responseWriter.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			responseWriter.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		dto, err := getAuthorizedUserDataFromCookie(tokenCookie, JwtSecret)
+
+		if err != nil {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if dto.FullName == "" {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		router(responseWriter, request)
+	}
+}
