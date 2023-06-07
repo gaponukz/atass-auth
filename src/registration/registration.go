@@ -2,6 +2,7 @@ package registration
 
 import (
 	"auth/src/entities"
+	"auth/src/storage"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -12,15 +13,9 @@ type CreateAndGetByGmailAbleStorage interface {
 	GetByGmail(string) (entities.User, error)
 }
 
-type IFutureUserStorage interface {
-	Create(entities.FutureUser) error
-	Delete(entities.FutureUser) error
-	GetByUniqueKey(string) (entities.FutureUser, error)
-}
-
 type RegistrationService struct {
 	UserStorage       CreateAndGetByGmailAbleStorage
-	FutureUserStorage IFutureUserStorage
+	FutureUserStorage storage.IFutureUserStorage
 	Notify            func(gmail, key string) error
 }
 

@@ -5,6 +5,12 @@ import (
 	"fmt"
 )
 
+type IFutureUserStorage interface {
+	Create(entities.FutureUser) error
+	Delete(entities.FutureUser) error
+	GetByUniqueKey(string) (entities.FutureUser, error)
+}
+
 type FutureUserMemoryStorage struct {
 	storage map[string]entities.FutureUser
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"auth/src/controller"
 	"auth/src/notifier"
@@ -29,7 +30,7 @@ func main() {
 		Settings: settings,
 		RegistrationService: registration.RegistrationService{
 			UserStorage:       userStorage,
-			FutureUserStorage: storage.NewFutureUserMemoryStorage(),
+			FutureUserStorage: storage.NewFutureUserRedisStorage(30 * time.Minute),
 			Notify: func(gmail, key string) error {
 				return sendGmail(gmail, "Confirm Email", notifier.GenerateConfirmCodeLetter(key))
 			},
