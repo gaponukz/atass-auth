@@ -25,7 +25,7 @@ This document provides an overview of the API endpoints and request bodies for t
 ```
 ### Confirm Registration
 
-- URL: `/confirm`
+- URL: `/confirmRegistration`
 - Method: `POST`
 - Description: Confirm user registration.
 - Request Body:
@@ -60,6 +60,30 @@ This document provides an overview of the API endpoints and request bodies for t
 ### Logout
 - URL: `/logout`
 - Method: `GET`
+
+### Reset password.
+- URL: `/resetPassword`
+- Method: `POST`
+- Description: Reset password for existing user.
+- Request Body:
+```json
+{
+    "gmail": "user@example.com",
+}
+```
+
+### Confirm reset password.
+- URL: `/confirmResetPassword`
+- Method: `POST`
+- Description: Reset password for existing user.
+- Request Body:
+```json
+{
+    "gmail": "user@example.com",
+    "password": "somenewpassword",
+    "key": "539991"
+}
+```
 
 ### Welcome (for test)
 - URL: `/welcome`
