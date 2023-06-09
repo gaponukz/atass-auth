@@ -26,10 +26,6 @@ func (strg *UserJsonFileStorage) Create(user entities.User) error {
 	return nil
 }
 
-func (stor *UserJsonFileStorage) ReadAll() ([]entities.User, error) {
-	return stor.readUsersFromFile()
-}
-
 func (strg *UserJsonFileStorage) Delete(userToRemove entities.User) error {
 	users, err := strg.readUsersFromFile()
 	if err != nil {
@@ -96,6 +92,26 @@ func (strg *UserJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
 	}
 
 	return users, nil
+}
+
+func (strg *UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newPassword string) error {
+	users, err := strg.readUsersFromFile()
+	if err != nil {
+		return err
+	}
+
+	for idx, user := range users {
+		if user.Gmail == userToUpdate.Gmail {
+			users[idx].Password = newPassword
+			err = strg.writeUsersToFile(users)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	return fmt.Errorf("user %s not found", userToUpdate.Gmail)
 }
 
 func (strg *UserJsonFileStorage) writeUsersToFile(users []entities.User) error {

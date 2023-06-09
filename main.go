@@ -8,6 +8,7 @@ import (
 	"auth/src/controller"
 	"auth/src/notifier"
 	"auth/src/registration"
+	"auth/src/resetPassword"
 	"auth/src/settings"
 	"auth/src/storage"
 )
@@ -33,6 +34,13 @@ func main() {
 			FutureUserStorage: storage.NewFutureUserRedisStorage(30 * time.Minute),
 			Notify: func(gmail, key string) error {
 				return sendGmail(gmail, "Confirm Email", notifier.GenerateConfirmCodeLetter(key))
+			},
+		},
+		ResetPasswordService: resetPassword.ResetPasswordService{
+			TemporaryStorage: storage.NewPasswordResetStorage(),
+			UserStorage:      userStorage,
+			Notify: func(gmail, key string) error {
+				return sendGmail(gmail, "Confirm password resetting", notifier.GenerateConfirmCodeLetter(key))
 			},
 		},
 	}

@@ -15,7 +15,7 @@ type CreateAndGetByGmailAbleStorage interface {
 
 type RegistrationService struct {
 	UserStorage       CreateAndGetByGmailAbleStorage
-	FutureUserStorage storage.IFutureUserStorage
+	FutureUserStorage storage.ITemporaryStorage[entities.FutureUser]
 	Notify            func(gmail, key string) error
 }
 

@@ -17,7 +17,7 @@ type FutureUserRedisStorage struct {
 	expiration time.Duration
 }
 
-func NewFutureUserRedisStorage(expiration time.Duration) IFutureUserStorage {
+func NewFutureUserRedisStorage(expiration time.Duration) ITemporaryStorage[entities.FutureUser] {
 	return FutureUserRedisStorage{
 		rdb: redis.NewClient(&redis.Options{
 			Addr: "localhost:6379",

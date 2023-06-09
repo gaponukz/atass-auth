@@ -3,6 +3,8 @@ package controller
 import (
 	"auth/src/entities"
 	"encoding/json"
+	"errors"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -18,6 +20,12 @@ type userCredentialsnDTO struct {
 	Phone       string `json:"phone"`
 	RememberHim bool   `json:"rememberHim"`
 	credentials
+}
+
+type passwordResetConfirmation struct {
+	Gmail    string `json:"gmail"`
+	Password string `json:"password"`
+	Key      string `json:"key"`
 }
 
 func getExpirationTime(remember bool) time.Time {
@@ -58,6 +66,38 @@ func getGmailConfirmationFromBody(request *http.Request) (entities.FutureUser, e
 	}
 
 	return creds, nil
+}
+
+func getResetPasswordConfirmationFromBody(request *http.Request) (passwordResetConfirmation, error) {
+	var creds passwordResetConfirmation
+
+	err := decodeRequestBody(request, &creds)
+	if err != nil {
+		return passwordResetConfirmation{}, err
+	}
+
+	return creds, nil
+}
+
+func getGmailFromBody(request *http.Request) (string, error) {
+	body, err := io.ReadAll(request.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var data map[string]interface{}
+
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		return "", err
+	}
+
+	gmail, ok := data["gmail"].(string)
+	if !ok {
+		return "", errors.New("gmail field not found or is not a string")
+	}
+
+	return gmail, nil
 }
 
 type RouterFunc = func(rw http.ResponseWriter, r *http.Request)

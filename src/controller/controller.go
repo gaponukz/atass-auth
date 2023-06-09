@@ -3,6 +3,7 @@ package controller
 import (
 	"auth/src/entities"
 	"auth/src/registration"
+	"auth/src/resetPassword"
 	"auth/src/settings"
 	"auth/src/storage"
 	"fmt"
@@ -10,10 +11,17 @@ import (
 	"time"
 )
 
+type IUserStorage interface {
+	Create(entities.User) error
+	Delete(entities.User) error
+	GetByGmail(string) (entities.User, error)
+}
+
 type Controller struct {
-	Storage             storage.IUserStorage
-	Settings            settings.Settings
-	RegistrationService registration.RegistrationService
+	Storage              IUserStorage
+	Settings             settings.Settings
+	RegistrationService  registration.RegistrationService
+	ResetPasswordService resetPassword.ResetPasswordService
 }
 
 func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *http.Request) {
@@ -178,4 +186,50 @@ func (contr *Controller) Logout(responseWriter http.ResponseWriter, request *htt
 		Name:    "token",
 		Expires: time.Now(),
 	})
+}
+
+func (contr *Controller) ResetPassword(responseWriter http.ResponseWriter, request *http.Request) {
+	gmail, err := getGmailFromBody(request)
+
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	code, err := contr.ResetPasswordService.GenerateAndSendCodeToGmail(gmail)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = contr.ResetPasswordService.AddUserToTemporaryStorage(storage.UserCredentials{
+		Gmail: gmail,
+		Key:   code,
+	})
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (contr *Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, request *http.Request) {
+	user, err := getResetPasswordConfirmationFromBody(request)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = contr.ResetPasswordService.ChangeUserPassword(
+		storage.UserCredentials{
+			Gmail: user.Gmail,
+			Key:   user.Key,
+		},
+		user.Password,
+	)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(responseWriter, request, "/signin", http.StatusFound)
 }
