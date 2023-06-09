@@ -46,8 +46,10 @@ func main() {
 	}
 
 	httpRoute.HandleFunc("/signup", controller.RequiredMethod(routerService.Signup, http.MethodPost))
-	httpRoute.HandleFunc("/confirm", controller.RequiredMethod(routerService.ConfirmRegistration, http.MethodPost))
+	httpRoute.HandleFunc("/confirmRegistration", controller.RequiredMethod(routerService.ConfirmRegistration, http.MethodPost))
 	httpRoute.HandleFunc("/signin", controller.RequiredMethod(routerService.Signin, http.MethodPost))
+	httpRoute.HandleFunc("/resetPassword", controller.RequiredMethod(routerService.ResetPassword, http.MethodPost))
+	httpRoute.HandleFunc("/confirmResetPassword", controller.RequiredMethod(routerService.ConfirmResetPassword, http.MethodPost))
 	httpRoute.HandleFunc("/logout", controller.OnlyAuthenticated(routerService.Logout, settings.JwtSecret))
 	httpRoute.HandleFunc("/refresh", routerService.Refresh)
 

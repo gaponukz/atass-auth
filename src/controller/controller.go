@@ -231,5 +231,5 @@ func (contr *Controller) ConfirmResetPassword(responseWriter http.ResponseWriter
 		return
 	}
 
-	http.Redirect(responseWriter, request, "/signin", http.StatusFound)
+	http.Redirect(responseWriter, request, "/signin_page", http.StatusFound)
 }
