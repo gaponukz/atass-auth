@@ -15,6 +15,7 @@ type IUserStorage interface {
 	Create(entities.User) error
 	Delete(entities.User) error
 	GetByGmail(string) (entities.User, error)
+	UpdatePassword(entities.User, string) error
 }
 
 type Controller struct {
@@ -158,7 +159,6 @@ func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *ht
 
 	if tokenErr != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
-		fmt.Println("tokenErr:", tokenErr)
 		return
 	}
 
