@@ -23,6 +23,13 @@ This document provides an overview of the API endpoints and request bodies for t
     "rememberHim": true
 }
 ```
+- Response:
+
+| Code | Description |
+| :--- | :--- |
+| `400` | Request Body is not correct |
+| `500` | Could not send letter with code to user |
+
 ### Confirm Registration
 
 - URL: `/confirmRegistration`
@@ -39,6 +46,12 @@ This document provides an overview of the API endpoints and request bodies for t
     "uniqueKey": "906815"
 }
 ```
+- Response:
+
+| Code | Description |
+| :--- | :--- |
+| `400` | Request Body is not correct or it's been a long time |
+| `500` | something went wrong while generating token, try signin |
 
 ### Sign In
 - URL: `/signin`
@@ -51,11 +64,24 @@ This document provides an overview of the API endpoints and request bodies for t
     "password": "somepass"
 }
 ```
+- Response:
+
+| Code | Description |
+| :--- | :--- |
+| `401` | Request Body is not correct or user not found |
+| `500` | something went wrong while generating token (very bad) |
 
 ### Refresh
 - URL: `/refresh`
 - Method: `GET`
 - Description: Refresh token, it is desirable to call every 5 minutes.
+- Response:
+
+| Code | Description |
+| :--- | :--- |
+| `401` | Lost token in cookie |
+| `400` | Something wrong with cookie, or it is just not time to refresh |
+| `500` | something went wrong while generating new token (very bad) |
 
 ### Logout
 - URL: `/logout`
@@ -71,6 +97,12 @@ This document provides an overview of the API endpoints and request bodies for t
     "gmail": "user@example.com",
 }
 ```
+- Response:
+
+| Code | Description |
+| :--- | :--- |
+| `400` | Request Body is not correct |
+| `500` | Could not send letter with code to user |
 
 ### Confirm reset password.
 - URL: `/confirmResetPassword`
@@ -84,6 +116,12 @@ This document provides an overview of the API endpoints and request bodies for t
     "key": "539991"
 }
 ```
+- Response:
+
+| Code | Description |
+| :--- | :--- |
+| `400` | Request Body is not correct or it's been a long time |
+| `500` | something went wrong while generating token, try signin |
 
 ### Welcome (for test)
 - URL: `/welcome`
