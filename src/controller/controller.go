@@ -5,7 +5,6 @@ import (
 	"auth/src/registration"
 	"auth/src/resetPassword"
 	"auth/src/settings"
-	"auth/src/storage"
 	"fmt"
 	"net/http"
 	"time"
@@ -202,7 +201,7 @@ func (contr *Controller) ResetPassword(responseWriter http.ResponseWriter, reque
 		return
 	}
 
-	err = contr.ResetPasswordService.AddUserToTemporaryStorage(storage.UserCredentials{
+	err = contr.ResetPasswordService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
 		Gmail: gmail,
 		Key:   code,
 	})
@@ -220,7 +219,7 @@ func (contr *Controller) ConfirmResetPassword(responseWriter http.ResponseWriter
 	}
 
 	err = contr.ResetPasswordService.ChangeUserPassword(
-		storage.UserCredentials{
+		entities.GmailWithKeyPair{
 			Gmail: user.Gmail,
 			Key:   user.Key,
 		},

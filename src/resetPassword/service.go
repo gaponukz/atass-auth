@@ -14,7 +14,7 @@ type UpdatePasswordGetByGmailAbleStorage interface {
 }
 
 type ResetPasswordService struct {
-	TemporaryStorage storage.ITemporaryStorage[storage.UserCredentials]
+	TemporaryStorage storage.ITemporaryStorage[entities.GmailWithKeyPair]
 	UserStorage      UpdatePasswordGetByGmailAbleStorage
 	Notify           func(gmail, key string) error
 }
@@ -26,7 +26,7 @@ func (service *ResetPasswordService) GenerateAndSendCodeToGmail(userGmail string
 	return key, err
 }
 
-func (service *ResetPasswordService) AddUserToTemporaryStorage(user storage.UserCredentials) error {
+func (service *ResetPasswordService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
 	_, err := service.UserStorage.GetByGmail(user.Gmail)
 
 	if err != nil {
@@ -36,7 +36,7 @@ func (service *ResetPasswordService) AddUserToTemporaryStorage(user storage.User
 	return service.TemporaryStorage.Create(user)
 }
 
-func (service *ResetPasswordService) ChangeUserPassword(user storage.UserCredentials, newPassword string) error {
+func (service *ResetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair, newPassword string) error {
 	_, err := service.TemporaryStorage.GetByUniqueKey(user.Key)
 	if err != nil {
 		return fmt.Errorf("user not found")
