@@ -123,10 +123,37 @@ This document provides an overview of the API endpoints and request bodies for t
 | `400` | Request Body is not correct or it's been a long time |
 | `500` | something went wrong while generating token, try signin |
 
-### Welcome (for test)
-- URL: `/welcome`
+### Get user.
+- URL: `/getUserInfo`
 - Method: `GET`
-- Description: returns some user info.
+- Description: Get user information in json.
+- Response:
+```json
+{
+    "gmail": "user@example.com",
+    "phone": "3809734275232",
+    "fullName": "Alex Yah",
+    "rememberHim": true,
+    "purchasedRouteIds": null
+}
+```
+
+### Add route.
+- URL: `/subscribeUserToTheRoute`
+- Method: `POST`
+- Description: Subscribe user to the route by id.
+- Request Body:
+```json
+{
+    "routeId": "g24g-h24hg2w-gh6j35w-w45g"
+}
+```
+- Response:
+
+| Code | Description |
+| :--- | :--- |
+| `400` | Request Body is not correct |
+| `500` | something went wrong, try signin |
 
 ## Before start
 ### Settings
