@@ -54,6 +54,7 @@ func main() {
 	httpRoute.HandleFunc("/refresh", routerService.Refresh)
 
 	httpRoute.HandleFunc("/getUserInfo", routerService.GetFullUserInfo)
+	httpRoute.HandleFunc("/subscribeUserToTheRoute", controller.RequiredMethod(routerService.SubscribeToTheRoute, http.MethodPost))
 
 	server := http.Server{
 		Addr:    ":8080",

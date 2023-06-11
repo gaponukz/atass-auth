@@ -3,7 +3,7 @@ package controller
 import (
 	"auth/src/entities"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -79,7 +79,7 @@ func getResetPasswordConfirmationFromBody(request *http.Request) (passwordResetC
 	return creds, nil
 }
 
-func getGmailFromBody(request *http.Request) (string, error) {
+func getOneStringFieldFromBody(request *http.Request, field string) (string, error) {
 	body, err := io.ReadAll(request.Body)
 	if err != nil {
 		return "", err
@@ -92,12 +92,20 @@ func getGmailFromBody(request *http.Request) (string, error) {
 		return "", err
 	}
 
-	gmail, ok := data["gmail"].(string)
+	value, ok := data[field].(string)
 	if !ok {
-		return "", errors.New("gmail field not found or is not a string")
+		return "", fmt.Errorf("could not parse %s field", field)
 	}
 
-	return gmail, nil
+	return value, nil
+}
+
+func getGmailFromBody(request *http.Request) (string, error) {
+	return getOneStringFieldFromBody(request, "gmail")
+}
+
+func getRouteIdFromBody(request *http.Request) (string, error) {
+	return getOneStringFieldFromBody(request, "routeId")
 }
 
 func loadStructIntoJson(data interface{}) ([]byte, error) {

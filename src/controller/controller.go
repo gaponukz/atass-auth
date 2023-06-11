@@ -13,7 +13,9 @@ type IUserStorage interface {
 	Create(entities.User) error
 	Delete(entities.User) error
 	GetByGmail(string) (entities.User, error)
+
 	UpdatePassword(entities.User, string) error
+	SubscribeToTheRoute(entities.User, string) error
 }
 
 type Controller struct {
@@ -220,7 +222,6 @@ func (contr *Controller) GetFullUserInfo(responseWriter http.ResponseWriter, req
 	}
 
 	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, contr.Settings.JwtSecret)
-
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
@@ -241,4 +242,41 @@ func (contr *Controller) GetFullUserInfo(responseWriter http.ResponseWriter, req
 	}
 	responseWriter.Header().Set("Content-Type", "application/json")
 	responseWriter.Write(jsonBytes)
+}
+
+func (contr *Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, request *http.Request) {
+	routeId, err := getRouteIdFromBody(request)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	tokenCookie, err := request.Cookie("token")
+
+	if err != nil {
+		if err == http.ErrNoCookie {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, contr.Settings.JwtSecret)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	user, err := contr.Storage.GetByGmail(dto.Gmail)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = contr.Storage.SubscribeToTheRoute(user, routeId)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

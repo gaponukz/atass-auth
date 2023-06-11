@@ -114,6 +114,26 @@ func (strg *UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newP
 	return fmt.Errorf("user %s not found", userToUpdate.Gmail)
 }
 
+func (strg *UserJsonFileStorage) SubscribeToTheRoute(userToUpdate entities.User, routeId string) error {
+	users, err := strg.readUsersFromFile()
+	if err != nil {
+		return err
+	}
+
+	for idx, user := range users {
+		if user.Gmail == userToUpdate.Gmail {
+			users[idx].PurchasedRouteIds = append(users[idx].PurchasedRouteIds, routeId)
+			err = strg.writeUsersToFile(users)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	return fmt.Errorf("user %s not found", userToUpdate.Gmail)
+}
+
 func (strg *UserJsonFileStorage) writeUsersToFile(users []entities.User) error {
 	file, err := os.Create(strg.FilePath)
 	if err != nil {
