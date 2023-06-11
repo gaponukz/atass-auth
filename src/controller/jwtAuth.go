@@ -10,9 +10,8 @@ import (
 )
 
 type userInfoDTO struct {
-	FullName          string   `json:"fullName"`
-	RememberHim       bool     `json:"rememberHim"`
-	PurchasedRouteIds []string `json:"purchasedRouteIds"`
+	Gmail       string `json:"gmail"`
+	RememberHim bool   `json:"rememberHim"`
 }
 
 type claims struct {
@@ -76,9 +75,8 @@ func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (use
 	}
 
 	dto := userInfoDTO{
-		FullName:          claims.FullName,
-		RememberHim:       claims.RememberHim,
-		PurchasedRouteIds: claims.PurchasedRouteIds,
+		Gmail:       claims.Gmail,
+		RememberHim: claims.RememberHim,
 	}
 
 	return dto, err

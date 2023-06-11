@@ -100,6 +100,15 @@ func getGmailFromBody(request *http.Request) (string, error) {
 	return gmail, nil
 }
 
+func loadStructIntoJson(data interface{}) ([]byte, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	return jsonData, nil
+}
+
 type RouterFunc = func(rw http.ResponseWriter, r *http.Request)
 
 func RequiredMethod(router RouterFunc, required string) RouterFunc {
@@ -118,33 +127,4 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		log.Printf("%s %s?%s", request.Method, request.URL.Path, request.URL.RawQuery)
 		next.ServeHTTP(responseWriter, request)
 	})
-}
-
-func OnlyAuthenticated(router RouterFunc, JwtSecret string) RouterFunc {
-	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		tokenCookie, err := request.Cookie("token")
-
-		if err != nil {
-			if err == http.ErrNoCookie {
-				responseWriter.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			responseWriter.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		dto, err := getAuthorizedUserDataFromCookie(tokenCookie, JwtSecret)
-
-		if err != nil {
-			responseWriter.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		if dto.FullName == "" {
-			responseWriter.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		router(responseWriter, request)
-	}
 }

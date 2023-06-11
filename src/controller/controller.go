@@ -5,7 +5,6 @@ import (
 	"auth/src/registration"
 	"auth/src/resetPassword"
 	"auth/src/settings"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -34,9 +33,8 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 
 	token, expirationTime, err := getTemporaryToken(
 		userInfoDTO{
-			FullName:          expectedUser.FullName,
-			RememberHim:       expectedUser.RememberHim,
-			PurchasedRouteIds: expectedUser.PurchasedRouteIds,
+			Gmail:       expectedUser.Gmail,
+			RememberHim: expectedUser.RememberHim,
 		},
 		contr.Settings.JwtSecret,
 	)
@@ -51,29 +49,6 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 		Value:   token,
 		Expires: expirationTime,
 	})
-}
-
-func (contr *Controller) Welcome(responseWriter http.ResponseWriter, request *http.Request) {
-	tokenCookie, err := request.Cookie("token")
-
-	if err != nil {
-		if err == http.ErrNoCookie {
-			responseWriter.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		responseWriter.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, contr.Settings.JwtSecret)
-
-	if err != nil {
-		responseWriter.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	response := fmt.Sprintf("Hi %s, remember? - %t", dto.FullName, dto.RememberHim)
-	responseWriter.Write([]byte(response))
 }
 
 func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *http.Request) {
@@ -123,9 +98,8 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 
 	token, expirationTime, err := getTemporaryToken(
 		userInfoDTO{
-			FullName:          user.FullName,
-			RememberHim:       user.RememberHim,
-			PurchasedRouteIds: user.PurchasedRouteIds,
+			Gmail:       user.Gmail,
+			RememberHim: user.RememberHim,
 		},
 		contr.Settings.JwtSecret,
 	)
@@ -231,4 +205,40 @@ func (contr *Controller) ConfirmResetPassword(responseWriter http.ResponseWriter
 	}
 
 	http.Redirect(responseWriter, request, "/signin_page", http.StatusFound)
+}
+
+func (contr *Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
+	tokenCookie, err := request.Cookie("token")
+
+	if err != nil {
+		if err == http.ErrNoCookie {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, contr.Settings.JwtSecret)
+
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	fullUserInfo, err := contr.Storage.GetByGmail(dto.Gmail)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fullUserInfo.Password = ""
+
+	jsonBytes, err := loadStructIntoJson(fullUserInfo)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	responseWriter.Header().Set("Content-Type", "application/json")
+	responseWriter.Write(jsonBytes)
 }

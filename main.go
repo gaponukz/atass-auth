@@ -50,10 +50,10 @@ func main() {
 	httpRoute.HandleFunc("/signin", controller.RequiredMethod(routerService.Signin, http.MethodPost))
 	httpRoute.HandleFunc("/resetPassword", controller.RequiredMethod(routerService.ResetPassword, http.MethodPost))
 	httpRoute.HandleFunc("/confirmResetPassword", controller.RequiredMethod(routerService.ConfirmResetPassword, http.MethodPost))
-	httpRoute.HandleFunc("/logout", controller.OnlyAuthenticated(routerService.Logout, settings.JwtSecret))
+	httpRoute.HandleFunc("/logout", routerService.Logout)
 	httpRoute.HandleFunc("/refresh", routerService.Refresh)
 
-	httpRoute.HandleFunc("/welcome", routerService.Welcome) // testing
+	httpRoute.HandleFunc("/getUserInfo", routerService.GetFullUserInfo)
 
 	server := http.Server{
 		Addr:    ":8080",
