@@ -17,6 +17,8 @@ func (strg *UserJsonFileStorage) Create(user entities.User) error {
 		return err
 	}
 
+	user.Password = GetSha256(user.Password)
+
 	users = append(users, user)
 	err = strg.writeUsersToFile(users)
 	if err != nil {
@@ -102,7 +104,7 @@ func (strg *UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newP
 
 	for idx, user := range users {
 		if user.Gmail == userToUpdate.Gmail {
-			users[idx].Password = newPassword
+			users[idx].Password = GetSha256(newPassword)
 			err = strg.writeUsersToFile(users)
 			if err != nil {
 				return err

@@ -62,7 +62,6 @@ func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *htt
 	}
 
 	key, err := contr.RegistrationService.GetInformatedFutureUser(creds.Gmail)
-
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return

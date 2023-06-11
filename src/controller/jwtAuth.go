@@ -2,6 +2,7 @@ package controller
 
 import (
 	"auth/src/entities"
+	"auth/src/storage"
 	"fmt"
 	"net/http"
 	"time"
@@ -19,24 +20,24 @@ type claims struct {
 	jwt.RegisteredClaims
 }
 
-type GetByGmailAbleStorage interface {
+type GetByGmailAbleuserStorage interface {
 	GetByGmail(string) (entities.User, error)
 }
 
-func getRegisteredUserFromRequestBody(request *http.Request, storage GetByGmailAbleStorage) (entities.User, error) {
+func getRegisteredUserFromRequestBody(request *http.Request, userStorage GetByGmailAbleuserStorage) (entities.User, error) {
 	creds, err := getUserCredentialsFromBody(request)
 
 	if err != nil {
 		return entities.User{}, err
 	}
 
-	expectedUser, err := storage.GetByGmail(creds.Gmail)
+	expectedUser, err := userStorage.GetByGmail(creds.Gmail)
 
 	if err != nil {
 		return entities.User{}, err
 	}
 
-	if expectedUser.Password != creds.Password {
+	if expectedUser.Password != storage.GetSha256(creds.Password) {
 		return entities.User{}, fmt.Errorf("unauthorized")
 	}
 
