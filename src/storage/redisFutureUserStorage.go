@@ -3,7 +3,6 @@ package storage
 import (
 	"auth/src/entities"
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -12,58 +11,43 @@ import (
 
 var ctx = context.Background()
 
-type FutureUserRedisStorage struct {
+type GmailWithKeyPairRedisStorage struct {
 	rdb        *redis.Client
+	prefix     string
 	expiration time.Duration
 }
 
-func NewFutureUserRedisStorage(expiration time.Duration) ITemporaryStorage[entities.FutureUser] {
-	return FutureUserRedisStorage{
+func NewGmailWithKeyPairRedisStorage(expiration time.Duration, prefix string) ITemporaryStorage[entities.GmailWithKeyPair] {
+	return GmailWithKeyPairRedisStorage{
 		rdb: redis.NewClient(&redis.Options{
 			Addr: "localhost:6379",
 		}),
+		prefix:     prefix,
 		expiration: expiration,
 	}
 }
 
-func (stor FutureUserRedisStorage) Create(user entities.FutureUser) error {
-	stringJson, err := futureUserToJson(user)
-
-	if err != nil {
-		return err
-	}
-
-	return stor.rdb.Set(ctx, user.UniqueKey, stringJson, stor.expiration).Err()
+func (stor GmailWithKeyPairRedisStorage) Create(user entities.GmailWithKeyPair) error {
+	return stor.rdb.Set(ctx, user.Key+stor.prefix, user.Gmail, stor.expiration).Err()
 }
 
-func (stor FutureUserRedisStorage) GetByUniqueKey(key string) (entities.FutureUser, error) {
-	stringJson, err := stor.rdb.Get(ctx, key).Result()
+func (stor GmailWithKeyPairRedisStorage) GetByUniqueKey(key string) (entities.GmailWithKeyPair, error) {
+	gmail, err := stor.rdb.Get(ctx, key+stor.prefix).Result()
 
 	if err != nil {
 		if err == redis.Nil {
-			return entities.FutureUser{}, fmt.Errorf("key not found: %v", key)
+			return entities.GmailWithKeyPair{}, fmt.Errorf("key not found: %v", key)
 		}
 
-		return entities.FutureUser{}, err
+		return entities.GmailWithKeyPair{}, err
 	}
 
-	return futureUserFromJson(stringJson)
+	return entities.GmailWithKeyPair{
+		Gmail: gmail,
+		Key:   key,
+	}, nil
 }
 
-func (stor FutureUserRedisStorage) Delete(user entities.FutureUser) error {
-	return stor.rdb.Del(ctx, user.UniqueKey).Err()
-}
-
-func futureUserToJson(user entities.FutureUser) (string, error) {
-	data, err := json.MarshalIndent(user, "", " ")
-
-	return string(data), err
-}
-
-func futureUserFromJson(stringJson string) (entities.FutureUser, error) {
-	var user entities.FutureUser
-
-	err := json.Unmarshal([]byte(stringJson), &user)
-
-	return user, err
+func (stor GmailWithKeyPairRedisStorage) Delete(user entities.GmailWithKeyPair) error {
+	return stor.rdb.Del(ctx, user.Key+stor.prefix).Err()
 }

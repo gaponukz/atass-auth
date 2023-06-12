@@ -15,7 +15,7 @@ type CreateAndGetByGmailAbleStorage interface {
 
 type RegistrationService struct {
 	UserStorage       CreateAndGetByGmailAbleStorage
-	FutureUserStorage storage.ITemporaryStorage[entities.FutureUser]
+	FutureUserStorage storage.ITemporaryStorage[entities.GmailWithKeyPair]
 	Notify            func(gmail, key string) error
 }
 
@@ -25,12 +25,12 @@ func (service *RegistrationService) generateKey() string {
 
 func (service *RegistrationService) GetInformatedFutureUser(userGmail string) (string, error) {
 	key := service.generateKey()
-	err := service.Notify(userGmail, key)
+	err := service.Notify(userGmail, key) // TODO: make gorutine with 5 sec deadline context
 
 	return key, err
 }
 
-func (service *RegistrationService) AddUserToFutureStorage(user entities.FutureUser) error {
+func (service *RegistrationService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
 	mayUser, _ := service.UserStorage.GetByGmail(user.Gmail)
 
 	if mayUser.Gmail != "" {
@@ -40,21 +40,16 @@ func (service *RegistrationService) AddUserToFutureStorage(user entities.FutureU
 	return service.FutureUserStorage.Create(user)
 }
 
-func (service *RegistrationService) RemoveUserFromFutureStorage(user entities.FutureUser) error {
-	_, err := service.FutureUserStorage.GetByUniqueKey(user.UniqueKey)
+func (service *RegistrationService) RegisterUserOnRightCode(pair entities.GmailWithKeyPair, user entities.User) error {
+	_, err := service.FutureUserStorage.GetByUniqueKey(pair.Key)
 	if err != nil {
 		return fmt.Errorf("user not found")
 	}
 
-	err = service.FutureUserStorage.Delete(user)
+	err = service.FutureUserStorage.Delete(pair)
 	if err != nil {
 		return fmt.Errorf("could not remove user")
 	}
 
-	return service.UserStorage.Create(entities.User{
-		Gmail:    user.Gmail,
-		Password: user.Password,
-		FullName: user.FullName,
-		Phone:    user.Phone,
-	})
+	return service.UserStorage.Create(user)
 }

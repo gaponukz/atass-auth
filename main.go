@@ -31,13 +31,13 @@ func main() {
 		Settings: settings,
 		RegistrationService: registration.RegistrationService{
 			UserStorage:       userStorage,
-			FutureUserStorage: storage.NewFutureUserRedisStorage(30 * time.Minute),
+			FutureUserStorage: storage.NewGmailWithKeyPairRedisStorage(30*time.Minute, "register"),
 			Notify: func(gmail, key string) error {
 				return sendGmail(gmail, "Confirm Email", notifier.GenerateConfirmCodeLetter(key))
 			},
 		},
 		ResetPasswordService: resetPassword.ResetPasswordService{
-			TemporaryStorage: storage.NewPasswordResetStorage(),
+			TemporaryStorage: storage.NewGmailWithKeyPairRedisStorage(5*time.Minute, "reset"),
 			UserStorage:      userStorage,
 			Notify: func(gmail, key string) error {
 				return sendGmail(gmail, "Confirm password resetting", notifier.GenerateConfirmCodeLetter(key))

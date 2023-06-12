@@ -54,28 +54,22 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 }
 
 func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *http.Request) {
-	creds, err := getUserCredentialsFromBody(request)
+	gmail, err := getGmailFromBody(request)
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	key, err := contr.RegistrationService.GetInformatedFutureUser(creds.Gmail)
+	key, err := contr.RegistrationService.GetInformatedFutureUser(gmail)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = contr.RegistrationService.AddUserToFutureStorage(entities.FutureUser{
-		UniqueKey: key,
-		User: entities.User{
-			Gmail:       creds.Gmail,
-			Password:    creds.Password,
-			FullName:    creds.FullName,
-			Phone:       creds.Phone,
-			RememberHim: creds.RememberHim,
-		},
+	err = contr.RegistrationService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
+		Gmail: gmail,
+		Key:   key,
 	})
 
 	if err != nil {
@@ -85,13 +79,22 @@ func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *htt
 }
 
 func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter, request *http.Request) {
-	user, err := getGmailConfirmationFromBody(request)
+	dto, err := getUserCredentialsFromBody(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = contr.RegistrationService.RemoveUserFromFutureStorage(user)
+	err = contr.RegistrationService.RegisterUserOnRightCode(entities.GmailWithKeyPair{
+		Gmail: dto.Gmail,
+		Key:   dto.Key,
+	}, entities.User{
+		Gmail:       dto.Gmail,
+		Password:    dto.Password,
+		Phone:       dto.Phone,
+		FullName:    dto.FullName,
+		RememberHim: dto.RememberHim,
+	})
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -99,8 +102,8 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 
 	token, expirationTime, err := getTemporaryToken(
 		userInfoDTO{
-			Gmail:       user.Gmail,
-			RememberHim: user.RememberHim,
+			Gmail:       dto.Gmail,
+			RememberHim: dto.RememberHim,
 		},
 		contr.Settings.JwtSecret,
 	)

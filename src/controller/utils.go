@@ -19,6 +19,7 @@ type userCredentialsnDTO struct {
 	FullName    string `json:"fullName"`
 	Phone       string `json:"phone"`
 	RememberHim bool   `json:"rememberHim"`
+	Key         string `json:"key"`
 	credentials
 }
 
@@ -57,12 +58,12 @@ func getUserCredentialsFromBody(request *http.Request) (userCredentialsnDTO, err
 	return creds, nil
 }
 
-func getGmailConfirmationFromBody(request *http.Request) (entities.FutureUser, error) {
-	var creds entities.FutureUser
+func getGmailConfirmationFromBody(request *http.Request) (entities.GmailWithKeyPair, error) {
+	var creds entities.GmailWithKeyPair
 
 	err := decodeRequestBody(request, &creds)
 	if err != nil {
-		return entities.FutureUser{}, err
+		return entities.GmailWithKeyPair{}, err
 	}
 
 	return creds, nil
