@@ -39,7 +39,7 @@ This document provides an overview of the API endpoints and request bodies for t
     "fullName": "Alex Yah",
     "phone": "380972748235",
     "rememberHim": true,
-    "uniqueKey": "906815"
+    "key": "906815"
 }
 ```
 - Response:
