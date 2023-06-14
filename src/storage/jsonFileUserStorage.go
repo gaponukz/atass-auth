@@ -11,7 +11,7 @@ type UserJsonFileStorage struct {
 	FilePath string
 }
 
-func (strg *UserJsonFileStorage) Create(user entities.User) error {
+func (strg UserJsonFileStorage) Create(user entities.User) error {
 	users, err := strg.readUsersFromFile()
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (strg *UserJsonFileStorage) Create(user entities.User) error {
 	return nil
 }
 
-func (strg *UserJsonFileStorage) Delete(userToRemove entities.User) error {
+func (strg UserJsonFileStorage) Delete(userToRemove entities.User) error {
 	users, err := strg.readUsersFromFile()
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (strg *UserJsonFileStorage) Delete(userToRemove entities.User) error {
 	return nil
 }
 
-func (stor *UserJsonFileStorage) GetByGmail(gmail string) (entities.User, error) {
+func (stor UserJsonFileStorage) GetByGmail(gmail string) (entities.User, error) {
 	users, err := stor.readUsersFromFile()
 	if err != nil {
 		return entities.User{}, err
@@ -80,7 +80,7 @@ func (stor *UserJsonFileStorage) GetByGmail(gmail string) (entities.User, error)
 	return userFound, nil
 }
 
-func (strg *UserJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
+func (strg UserJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
 	file, err := os.Open(strg.FilePath)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (strg *UserJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
 	return users, nil
 }
 
-func (strg *UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newPassword string) error {
+func (strg UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newPassword string) error {
 	users, err := strg.readUsersFromFile()
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (strg *UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newP
 	return fmt.Errorf("user %s not found", userToUpdate.Gmail)
 }
 
-func (strg *UserJsonFileStorage) SubscribeToTheRoute(userToUpdate entities.User, routeId string) error {
+func (strg UserJsonFileStorage) SubscribeToTheRoute(userToUpdate entities.User, routeId string) error {
 	users, err := strg.readUsersFromFile()
 	if err != nil {
 		return err
@@ -136,7 +136,7 @@ func (strg *UserJsonFileStorage) SubscribeToTheRoute(userToUpdate entities.User,
 	return fmt.Errorf("user %s not found", userToUpdate.Gmail)
 }
 
-func (strg *UserJsonFileStorage) writeUsersToFile(users []entities.User) error {
+func (strg UserJsonFileStorage) writeUsersToFile(users []entities.User) error {
 	file, err := os.Create(strg.FilePath)
 	if err != nil {
 		return err

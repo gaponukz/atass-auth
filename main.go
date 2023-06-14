@@ -17,7 +17,7 @@ func main() {
 	httpRoute := http.NewServeMux()
 	settingExporter := settings.DotEnvSettings{}
 	settings := settingExporter.Load()
-	userStorage := &storage.UserJsonFileStorage{
+	userStorage := storage.UserJsonFileStorage{
 		FilePath: "users.json",
 	}
 
