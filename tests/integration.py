@@ -13,7 +13,6 @@ with requests.Session() as session:
         "password": "somepass",
         "fullName": "Alex Yah",
         "phone": "380972748235",
-        "rememberHim": True,
         "key": "12345"
     })
 
@@ -27,6 +26,7 @@ with requests.Session() as session:
     response = session.post(f'{api_url}/signin', json={
         "gmail": "gaponukz@knu.ua",
         "password": "somepass",
+        "rememberHim": True
     })
 
     assert response.status_code == 200
@@ -37,7 +37,6 @@ with requests.Session() as session:
     data = response.json()
 
     assert data['gmail'] == "gaponukz@knu.ua"
-    assert data["rememberHim"] == True
     assert data['phone'] == "380972748235"
 
     response = session.post(f'{api_url}/subscribeUserToTheRoute', json={

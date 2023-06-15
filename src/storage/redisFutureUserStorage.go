@@ -21,9 +21,6 @@ func RedisTemporaryStorage(expiration time.Duration, prefix string) gmailWithKey
 	rdb := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 	})
-	if err := rdb.Ping(ctx); err != nil {
-		panic("failed to connect redis")
-	}
 
 	return gmailWithKeyPairRedisStorage{
 		rdb:        rdb,

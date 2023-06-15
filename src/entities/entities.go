@@ -5,7 +5,6 @@ type User struct {
 	Password            string   `json:"password"`
 	Phone               string   `json:"phone"`
 	FullName            string   `json:"fullName"`
-	RememberHim         bool     `json:"rememberHim"`
 	AllowsAdvertisement bool     `json:"allowsAdvertisement"`
 	PurchasedRouteIds   []string `json:"purchasedRouteIds"`
 }
