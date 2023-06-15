@@ -57,7 +57,8 @@ This document provides an overview of the API endpoints and request bodies for t
 ```json
 {
     "gmail": "user@example.com",
-    "password": "somepass"
+    "password": "somepass",
+    "rememberHim": true
 }
 ```
 - Response:
