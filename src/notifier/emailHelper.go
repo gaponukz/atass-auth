@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-func GenerateConfirmCodeLetter(code string) string {
-	data, err := os.ReadFile("letters/letter.html")
+func GenerateConfirmCodeLetter(path, code string) string {
+	data, err := os.ReadFile(path)
 
 	if err != nil {
 		panic("file not found")

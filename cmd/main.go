@@ -54,14 +54,16 @@ func main() {
 			UserStorage:       userStorage,
 			FutureUserStorage: storage.RedisTemporaryStorage(30*time.Minute, "register"),
 			Notify: func(gmail, key string) error {
-				return sendGmail(gmail, "Confirm Email", notifier.GenerateConfirmCodeLetter(key))
+				var content = "letters/confirmRegistration.html"
+				return sendGmail(gmail, "Confirm Email", notifier.GenerateConfirmCodeLetter(content, key))
 			},
 		},
 		ResetPasswordService: resetPassword.ResetPasswordService{
 			TemporaryStorage: storage.RedisTemporaryStorage(5*time.Minute, "reset"),
 			UserStorage:      userStorage,
 			Notify: func(gmail, key string) error {
-				return sendGmail(gmail, "Confirm password resetting", notifier.GenerateConfirmCodeLetter(key))
+				var content = "letters/resetPasswors.html"
+				return sendGmail(gmail, "Confirm password resetting", notifier.GenerateConfirmCodeLetter(content, key))
 			},
 		},
 	}
