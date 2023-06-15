@@ -11,27 +11,32 @@ import (
 
 var ctx = context.Background()
 
-type GmailWithKeyPairRedisStorage struct {
+type gmailWithKeyPairRedisStorage struct {
 	rdb        *redis.Client
 	prefix     string
 	expiration time.Duration
 }
 
-func NewGmailWithKeyPairRedisStorage(expiration time.Duration, prefix string) ITemporaryStorage[entities.GmailWithKeyPair] {
-	return GmailWithKeyPairRedisStorage{
-		rdb: redis.NewClient(&redis.Options{
-			Addr: "localhost:6379",
-		}),
+func RedisTemporaryStorage(expiration time.Duration, prefix string) gmailWithKeyPairRedisStorage {
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+	if err := rdb.Ping(ctx); err != nil {
+		panic("failed to connect redis")
+	}
+
+	return gmailWithKeyPairRedisStorage{
+		rdb:        rdb,
 		prefix:     prefix,
 		expiration: expiration,
 	}
 }
 
-func (stor GmailWithKeyPairRedisStorage) Create(user entities.GmailWithKeyPair) error {
+func (stor gmailWithKeyPairRedisStorage) Create(user entities.GmailWithKeyPair) error {
 	return stor.rdb.Set(ctx, user.Key+stor.prefix, user.Gmail, stor.expiration).Err()
 }
 
-func (stor GmailWithKeyPairRedisStorage) GetByUniqueKey(key string) (entities.GmailWithKeyPair, error) {
+func (stor gmailWithKeyPairRedisStorage) GetByUniqueKey(key string) (entities.GmailWithKeyPair, error) {
 	gmail, err := stor.rdb.Get(ctx, key+stor.prefix).Result()
 
 	if err != nil {
@@ -48,6 +53,6 @@ func (stor GmailWithKeyPairRedisStorage) GetByUniqueKey(key string) (entities.Gm
 	}, nil
 }
 
-func (stor GmailWithKeyPairRedisStorage) Delete(user entities.GmailWithKeyPair) error {
+func (stor gmailWithKeyPairRedisStorage) Delete(user entities.GmailWithKeyPair) error {
 	return stor.rdb.Del(ctx, user.Key+stor.prefix).Err()
 }

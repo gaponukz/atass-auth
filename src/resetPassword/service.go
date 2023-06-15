@@ -2,20 +2,25 @@ package resetPassword
 
 import (
 	"auth/src/entities"
-	"auth/src/storage"
 	"fmt"
 	"math/rand"
 	"strconv"
 )
 
-type UpdatePasswordGetByGmailAbleStorage interface {
+type updatePasswordGetByGmailAbleStorage interface {
 	GetByGmail(string) (entities.User, error)
 	UpdatePassword(entities.User, string) error
 }
 
+type gmailKeyPairStorage interface {
+	Create(entities.GmailWithKeyPair) error
+	Delete(entities.GmailWithKeyPair) error
+	GetByUniqueKey(string) (entities.GmailWithKeyPair, error)
+}
+
 type ResetPasswordService struct {
-	TemporaryStorage storage.ITemporaryStorage[entities.GmailWithKeyPair]
-	UserStorage      UpdatePasswordGetByGmailAbleStorage
+	TemporaryStorage gmailKeyPairStorage
+	UserStorage      updatePasswordGetByGmailAbleStorage
 	Notify           func(gmail, key string) error
 }
 

@@ -2,8 +2,9 @@ package registration
 
 import (
 	"auth/src/entities"
-	"auth/src/storage"
 	"fmt"
+	"math/rand"
+	"strconv"
 )
 
 type CreateAndGetByGmailAbleStorage interface {
@@ -11,14 +12,20 @@ type CreateAndGetByGmailAbleStorage interface {
 	GetByGmail(string) (entities.User, error)
 }
 
+type GmailKeyPairStorage interface {
+	Create(entities.GmailWithKeyPair) error
+	Delete(entities.GmailWithKeyPair) error
+	GetByUniqueKey(string) (entities.GmailWithKeyPair, error)
+}
+
 type RegistrationService struct {
 	UserStorage       CreateAndGetByGmailAbleStorage
-	FutureUserStorage storage.ITemporaryStorage[entities.GmailWithKeyPair]
+	FutureUserStorage GmailKeyPairStorage
 	Notify            func(gmail, key string) error
 }
 
 func (service *RegistrationService) generateKey() string {
-	return "12345" //strconv.Itoa(rand.Intn(900000) + 100000)
+	return strconv.Itoa(rand.Intn(900000) + 100000)
 }
 
 func (service *RegistrationService) GetInformatedFutureUser(userGmail string) (string, error) {
