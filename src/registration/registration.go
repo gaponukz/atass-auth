@@ -7,20 +7,20 @@ import (
 	"strconv"
 )
 
-type CreateAndGetByGmailAbleStorage interface {
+type createAndGetByGmailAbleStorage interface {
 	Create(entities.User) error
 	GetByGmail(string) (entities.User, error)
 }
 
-type GmailKeyPairStorage interface {
+type gmailKeyPairStorage interface {
 	Create(entities.GmailWithKeyPair) error
 	Delete(entities.GmailWithKeyPair) error
 	GetByUniqueKey(string) (entities.GmailWithKeyPair, error)
 }
 
 type RegistrationService struct {
-	UserStorage       CreateAndGetByGmailAbleStorage
-	FutureUserStorage GmailKeyPairStorage
+	UserStorage       createAndGetByGmailAbleStorage
+	FutureUserStorage gmailKeyPairStorage
 	Notify            func(gmail, key string) error
 }
 

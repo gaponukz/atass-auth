@@ -17,12 +17,13 @@ type signInDTO struct {
 }
 
 type singUpDTO struct {
-	Gmail       string `json:"gmail"`
-	Password    string `json:"password"`
-	FullName    string `json:"fullName"`
-	Phone       string `json:"phone"`
-	Key         string `json:"key"`
-	RememberHim bool   `json:"rememberHim"`
+	Gmail               string `json:"gmail"`
+	Password            string `json:"password"`
+	FullName            string `json:"fullName"`
+	Phone               string `json:"phone"`
+	Key                 string `json:"key"`
+	AllowsAdvertisement bool   `json:"allowsAdvertisement"`
+	RememberHim         bool   `json:"rememberHim"`
 }
 
 type passwordResetDTO struct {

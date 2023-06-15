@@ -98,11 +98,12 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 		Gmail: dto.Gmail,
 		Key:   dto.Key,
 	}, entities.User{
-		Gmail:       dto.Gmail,
-		Password:    dto.Password,
-		Phone:       dto.Phone,
-		FullName:    dto.FullName,
-		RememberHim: dto.RememberHim,
+		Gmail:               dto.Gmail,
+		Password:            dto.Password,
+		Phone:               dto.Phone,
+		FullName:            dto.FullName,
+		RememberHim:         dto.RememberHim,
+		AllowsAdvertisement: dto.AllowsAdvertisement,
 	})
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)

@@ -39,6 +39,7 @@ This document provides an overview of the API endpoints and request bodies for t
     "fullName": "Alex Yah",
     "phone": "380972748235",
     "rememberHim": true,
+    "allowsAdvertisement": true,
     "key": "906815"
 }
 ```
