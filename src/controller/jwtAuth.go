@@ -13,14 +13,14 @@ type claims struct {
 	jwt.RegisteredClaims
 }
 
-func getTemporaryToken(infoDto userInfoDTO, jwtSecret string) (string, time.Time, error) {
-	expirationTime := getExpirationTime(infoDto.RememberHim)
+func getTemporaryToken(dto createTokenDTO, jwtSecret string) (string, time.Time, error) {
+	expirationTime := getExpirationTime(dto.RememberHim)
 
 	claims := &claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
-		userInfoDTO: infoDto,
+		userInfoDTO: userInfoDTO{Gmail: dto.Gmail},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -45,8 +45,7 @@ func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (use
 	}
 
 	dto := userInfoDTO{
-		Gmail:       claims.Gmail,
-		RememberHim: claims.RememberHim,
+		Gmail: claims.Gmail,
 	}
 
 	return dto, err
@@ -70,7 +69,7 @@ func parseClaimsFromToken(token, secret string) (*claims, error) {
 }
 
 func genarateNewTemporaryTokenFromClaims(oldClaims *claims, secret string) (string, time.Time, error) {
-	expirationTime := getExpirationTime(oldClaims.RememberHim)
+	expirationTime := getExpirationTime(false)
 	oldClaims.ExpiresAt = jwt.NewNumericDate(expirationTime)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, oldClaims)
 	tockenStr, err := token.SignedString([]byte(secret))

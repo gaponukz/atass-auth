@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type IUserStorage interface {
+type userStorage interface {
 	Create(entities.User) error
 	Delete(entities.User) error
 	GetByGmail(string) (entities.User, error)
@@ -19,7 +19,7 @@ type IUserStorage interface {
 }
 
 type Controller struct {
-	Storage              IUserStorage
+	Storage              userStorage
 	Settings             settings.Settings
 	RegistrationService  registration.RegistrationService
 	ResetPasswordService resetPassword.ResetPasswordService
@@ -43,7 +43,7 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 	}
 
 	token, expirationTime, err := getTemporaryToken(
-		userInfoDTO{
+		createTokenDTO{
 			Gmail:       creds.Gmail,
 			RememberHim: creds.RememberHim,
 		},
@@ -102,7 +102,6 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 		Password:            dto.Password,
 		Phone:               dto.Phone,
 		FullName:            dto.FullName,
-		RememberHim:         dto.RememberHim,
 		AllowsAdvertisement: dto.AllowsAdvertisement,
 	})
 	if err != nil {
@@ -111,9 +110,8 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 	}
 
 	token, expirationTime, err := getTemporaryToken(
-		userInfoDTO{
-			Gmail:       dto.Gmail,
-			RememberHim: dto.RememberHim,
+		createTokenDTO{
+			Gmail: dto.Gmail,
 		},
 		contr.Settings.JwtSecret,
 	)

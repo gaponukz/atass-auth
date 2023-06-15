@@ -38,7 +38,6 @@ This document provides an overview of the API endpoints and request bodies for t
     "password": "somepass",
     "fullName": "Alex Yah",
     "phone": "380972748235",
-    "rememberHim": true,
     "allowsAdvertisement": true,
     "key": "906815"
 }
