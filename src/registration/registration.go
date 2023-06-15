@@ -4,8 +4,6 @@ import (
 	"auth/src/entities"
 	"auth/src/storage"
 	"fmt"
-	"math/rand"
-	"strconv"
 )
 
 type CreateAndGetByGmailAbleStorage interface {
@@ -20,7 +18,7 @@ type RegistrationService struct {
 }
 
 func (service *RegistrationService) generateKey() string {
-	return strconv.Itoa(rand.Intn(900000) + 100000)
+	return "12345" //strconv.Itoa(rand.Intn(900000) + 100000)
 }
 
 func (service *RegistrationService) GetInformatedFutureUser(userGmail string) (string, error) {

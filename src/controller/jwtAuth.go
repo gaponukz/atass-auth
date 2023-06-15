@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"auth/src/entities"
-	"auth/src/storage"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,38 +8,9 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type userInfoDTO struct {
-	Gmail       string `json:"gmail"`
-	RememberHim bool   `json:"rememberHim"`
-}
-
 type claims struct {
 	userInfoDTO
 	jwt.RegisteredClaims
-}
-
-type GetByGmailAbleuserStorage interface {
-	GetByGmail(string) (entities.User, error)
-}
-
-func getRegisteredUserFromRequestBody(request *http.Request, userStorage GetByGmailAbleuserStorage) (entities.User, error) {
-	creds, err := getUserCredentialsFromBody(request)
-
-	if err != nil {
-		return entities.User{}, err
-	}
-
-	expectedUser, err := userStorage.GetByGmail(creds.Gmail)
-
-	if err != nil {
-		return entities.User{}, err
-	}
-
-	if expectedUser.Password != storage.GetSha256(creds.Password) {
-		return entities.User{}, fmt.Errorf("unauthorized")
-	}
-
-	return expectedUser, nil
 }
 
 func getTemporaryToken(infoDto userInfoDTO, jwtSecret string) (string, time.Time, error) {

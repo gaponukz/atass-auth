@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -12,6 +13,26 @@ import (
 	"auth/src/settings"
 	"auth/src/storage"
 )
+
+type RouterFunc = func(rw http.ResponseWriter, r *http.Request)
+
+func RequiredMethod(router RouterFunc, required string) RouterFunc {
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		if request.Method == required {
+			router(responseWriter, request)
+
+		} else {
+			http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	}
+}
+
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
+		log.Printf("%s %s?%s", request.Method, request.URL.Path, request.URL.RawQuery)
+		next.ServeHTTP(responseWriter, request)
+	})
+}
 
 func main() {
 	httpRoute := http.NewServeMux()
@@ -45,20 +66,20 @@ func main() {
 		},
 	}
 
-	httpRoute.HandleFunc("/signup", controller.RequiredMethod(routerService.Signup, http.MethodPost))
-	httpRoute.HandleFunc("/confirmRegistration", controller.RequiredMethod(routerService.ConfirmRegistration, http.MethodPost))
-	httpRoute.HandleFunc("/signin", controller.RequiredMethod(routerService.Signin, http.MethodPost))
-	httpRoute.HandleFunc("/resetPassword", controller.RequiredMethod(routerService.ResetPassword, http.MethodPost))
-	httpRoute.HandleFunc("/confirmResetPassword", controller.RequiredMethod(routerService.ConfirmResetPassword, http.MethodPost))
+	httpRoute.HandleFunc("/signup", RequiredMethod(routerService.Signup, http.MethodPost))
+	httpRoute.HandleFunc("/confirmRegistration", RequiredMethod(routerService.ConfirmRegistration, http.MethodPost))
+	httpRoute.HandleFunc("/signin", RequiredMethod(routerService.Signin, http.MethodPost))
+	httpRoute.HandleFunc("/resetPassword", RequiredMethod(routerService.ResetPassword, http.MethodPost))
+	httpRoute.HandleFunc("/confirmResetPassword", RequiredMethod(routerService.ConfirmResetPassword, http.MethodPost))
 	httpRoute.HandleFunc("/logout", routerService.Logout)
 	httpRoute.HandleFunc("/refresh", routerService.Refresh)
 
 	httpRoute.HandleFunc("/getUserInfo", routerService.GetFullUserInfo)
-	httpRoute.HandleFunc("/subscribeUserToTheRoute", controller.RequiredMethod(routerService.SubscribeToTheRoute, http.MethodPost))
+	httpRoute.HandleFunc("/subscribeUserToTheRoute", RequiredMethod(routerService.SubscribeToTheRoute, http.MethodPost))
 
 	server := http.Server{
 		Addr:    ":8080",
-		Handler: controller.LoggingMiddleware(httpRoute),
+		Handler: LoggingMiddleware(httpRoute),
 	}
 
 	fmt.Println("⚡️[server]: Server is running at http://localhost:8080")

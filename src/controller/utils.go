@@ -2,32 +2,13 @@ package controller
 
 import (
 	"auth/src/entities"
+	"auth/src/storage"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 )
-
-type credentials struct {
-	Gmail    string `json:"gmail"`
-	Password string `json:"password"`
-}
-
-type userCredentialsnDTO struct {
-	FullName    string `json:"fullName"`
-	Phone       string `json:"phone"`
-	RememberHim bool   `json:"rememberHim"`
-	Key         string `json:"key"`
-	credentials
-}
-
-type passwordResetConfirmation struct {
-	Gmail    string `json:"gmail"`
-	Password string `json:"password"`
-	Key      string `json:"key"`
-}
 
 func getExpirationTime(remember bool) time.Time {
 	if remember {
@@ -35,6 +16,24 @@ func getExpirationTime(remember bool) time.Time {
 	}
 
 	return time.Now().Add(10 * time.Minute)
+}
+
+type getByGmailAbleuserStorage interface {
+	GetByGmail(string) (entities.User, error)
+}
+
+func isUserAuthenticated(creds credentials, userStorage getByGmailAbleuserStorage) bool {
+	expectedUser, err := userStorage.GetByGmail(creds.Gmail)
+
+	if err != nil {
+		return false
+	}
+
+	if expectedUser.Password != storage.GetSha256(creds.Password) {
+		return true
+	}
+
+	return true
 }
 
 func decodeRequestBody(request *http.Request, data interface{}) error {
@@ -47,34 +46,34 @@ func decodeRequestBody(request *http.Request, data interface{}) error {
 	return nil
 }
 
-func getUserCredentialsFromBody(request *http.Request) (userCredentialsnDTO, error) {
-	var creds userCredentialsnDTO
+func getSignInCredentialsFromBody(request *http.Request) (signInDTO, error) {
+	var creds signInDTO
 
 	err := decodeRequestBody(request, &creds)
 	if err != nil {
-		return userCredentialsnDTO{}, err
+		return signInDTO{}, err
 	}
 
 	return creds, nil
 }
 
-func getGmailConfirmationFromBody(request *http.Request) (entities.GmailWithKeyPair, error) {
-	var creds entities.GmailWithKeyPair
+func getUserCredentialsFromBody(request *http.Request) (singUpDTO, error) {
+	var creds singUpDTO
 
 	err := decodeRequestBody(request, &creds)
 	if err != nil {
-		return entities.GmailWithKeyPair{}, err
+		return singUpDTO{}, err
 	}
 
 	return creds, nil
 }
 
-func getResetPasswordConfirmationFromBody(request *http.Request) (passwordResetConfirmation, error) {
-	var creds passwordResetConfirmation
+func getResetPasswordConfirmationFromBody(request *http.Request) (passwordResetDTO, error) {
+	var creds passwordResetDTO
 
 	err := decodeRequestBody(request, &creds)
 	if err != nil {
-		return passwordResetConfirmation{}, err
+		return passwordResetDTO{}, err
 	}
 
 	return creds, nil
@@ -116,24 +115,4 @@ func loadStructIntoJson(data interface{}) ([]byte, error) {
 	}
 
 	return jsonData, nil
-}
-
-type RouterFunc = func(rw http.ResponseWriter, r *http.Request)
-
-func RequiredMethod(router RouterFunc, required string) RouterFunc {
-	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		if request.Method == required {
-			router(responseWriter, request)
-
-		} else {
-			http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
-		}
-	}
-}
-
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
-		log.Printf("%s %s?%s", request.Method, request.URL.Path, request.URL.RawQuery)
-		next.ServeHTTP(responseWriter, request)
-	})
 }

@@ -26,7 +26,16 @@ type Controller struct {
 }
 
 func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *http.Request) {
-	expectedUser, err := getRegisteredUserFromRequestBody(request, contr.Storage)
+	creds, err := getSignInCredentialsFromBody(request)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if !isUserAuthenticated(credentials{Gmail: creds.Gmail, Password: creds.Password}, contr.Storage) {
+		responseWriter.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
@@ -35,8 +44,8 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 
 	token, expirationTime, err := getTemporaryToken(
 		userInfoDTO{
-			Gmail:       expectedUser.Gmail,
-			RememberHim: expectedUser.RememberHim,
+			Gmail:       creds.Gmail,
+			RememberHim: creds.RememberHim,
 		},
 		contr.Settings.JwtSecret,
 	)
