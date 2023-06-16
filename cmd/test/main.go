@@ -5,10 +5,8 @@ import (
 	"time"
 
 	"auth/src/controller"
-	"auth/src/notifier"
 	"auth/src/registration"
 	"auth/src/resetPassword"
-	"auth/src/security"
 	"auth/src/settings"
 	"auth/src/storage"
 	"auth/src/web"
@@ -19,19 +17,6 @@ func main() {
 	futureUserStor := storage.RedisTemporaryStorage(30*time.Minute, "register")
 	resetPassStor := storage.RedisTemporaryStorage(5*time.Minute, "reset")
 	userStorage := storage.UserJsonFileStorage{FilePath: "users.json"}
-	sendFromCreds := notifier.SendFrom{Gmail: settings.Gmail, Password: settings.GmailPassword}
-
-	sendRegisterGmail := notifier.SendEmailNoificationFactory(
-		sendFromCreds,
-		"Confirm your registration",
-		"letters/confirmRegistration.html",
-	)
-
-	sendResetPasswordLetter := notifier.SendEmailNoificationFactory(
-		sendFromCreds,
-		"Confirm your password reseting",
-		"letters/resetPasswors.html",
-	)
 
 	server := web.SetupServer(
 		controller.Controller{
@@ -40,18 +25,18 @@ func main() {
 			RegistrationService: registration.RegistrationService{
 				UserStorage:       userStorage,
 				FutureUserStorage: futureUserStor,
-				Notify:            sendRegisterGmail,
-				GenerateCode:      security.GenerateCode,
+				Notify:            func(gmail string, key string) error { return nil },
+				GenerateCode:      func() string { return "12345" },
 			},
 			ResetPasswordService: resetPassword.ResetPasswordService{
 				TemporaryStorage: resetPassStor,
 				UserStorage:      userStorage,
-				Notify:           sendResetPasswordLetter,
-				GenerateCode:     security.GenerateCode,
+				Notify:           func(gmail string, key string) error { return nil },
+				GenerateCode:     func() string { return "12345" },
 			},
 		},
 	)
 
-	fmt.Println("⚡️[server]: Server is running at http://localhost:8080")
+	fmt.Printf("⚡️[server]: Server is running at http://localhost:%d", settings.Port)
 	server.ListenAndServe()
 }
