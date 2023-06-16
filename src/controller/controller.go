@@ -25,14 +25,14 @@ type Controller struct {
 	ResetPasswordService resetPassword.ResetPasswordService
 }
 
-func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *http.Request) {
+func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Request) {
 	creds, err := getSignInDto(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if !isCredsValid(credentials{Gmail: creds.Gmail, Password: creds.Password}, contr.Storage) {
+	if !isCredsValid(credentials{Gmail: creds.Gmail, Password: creds.Password}, c.Storage) {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -47,7 +47,7 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 			Gmail:       creds.Gmail,
 			RememberHim: creds.RememberHim,
 		},
-		contr.Settings.JwtSecret,
+		c.Settings.JwtSecret,
 	)
 
 	if err != nil {
@@ -62,7 +62,7 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 	})
 }
 
-func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *http.Request) {
+func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Request) {
 	gmail, err := getGmailFromBody(request)
 
 	if err != nil {
@@ -70,13 +70,13 @@ func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *htt
 		return
 	}
 
-	key, err := contr.RegistrationService.GetInformatedFutureUser(gmail)
+	key, err := c.RegistrationService.GetInformatedFutureUser(gmail)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = contr.RegistrationService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
+	err = c.RegistrationService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
 		Gmail: gmail,
 		Key:   key,
 	})
@@ -87,14 +87,14 @@ func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *htt
 	}
 }
 
-func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter, request *http.Request) {
+func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, request *http.Request) {
 	dto, err := getSignUpDto(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = contr.RegistrationService.RegisterUserOnRightCode(entities.GmailWithKeyPair{
+	err = c.RegistrationService.RegisterUserOnRightCode(entities.GmailWithKeyPair{
 		Gmail: dto.Gmail,
 		Key:   dto.Key,
 	}, entities.User{
@@ -113,7 +113,7 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 		createTokenDTO{
 			Gmail: dto.Gmail,
 		},
-		contr.Settings.JwtSecret,
+		c.Settings.JwtSecret,
 	)
 
 	if err != nil {
@@ -128,7 +128,7 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 	})
 }
 
-func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *http.Request) {
+func (c Controller) Refresh(responseWriter http.ResponseWriter, request *http.Request) {
 	tokenCookie, err := request.Cookie("token")
 
 	if err != nil {
@@ -140,7 +140,7 @@ func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *ht
 		return
 	}
 
-	claims, tokenErr := getClaimsFromToken(tokenCookie.Value, contr.Settings.JwtSecret)
+	claims, tokenErr := getClaimsFromToken(tokenCookie.Value, c.Settings.JwtSecret)
 
 	if tokenErr != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -152,7 +152,7 @@ func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *ht
 		return
 	}
 
-	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(claims, contr.Settings.JwtSecret)
+	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(claims, c.Settings.JwtSecret)
 
 	if newTokernErr != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
@@ -166,14 +166,14 @@ func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *ht
 	})
 }
 
-func (contr *Controller) Logout(responseWriter http.ResponseWriter, request *http.Request) {
+func (c Controller) Logout(responseWriter http.ResponseWriter, request *http.Request) {
 	http.SetCookie(responseWriter, &http.Cookie{
 		Name:    "token",
 		Expires: time.Now(),
 	})
 }
 
-func (contr *Controller) ResetPassword(responseWriter http.ResponseWriter, request *http.Request) {
+func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *http.Request) {
 	gmail, err := getGmailFromBody(request)
 
 	if err != nil {
@@ -181,13 +181,13 @@ func (contr *Controller) ResetPassword(responseWriter http.ResponseWriter, reque
 		return
 	}
 
-	code, err := contr.ResetPasswordService.GenerateAndSendCodeToGmail(gmail)
+	code, err := c.ResetPasswordService.NotifyUser(gmail)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = contr.ResetPasswordService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
+	err = c.ResetPasswordService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
 		Gmail: gmail,
 		Key:   code,
 	})
@@ -197,14 +197,14 @@ func (contr *Controller) ResetPassword(responseWriter http.ResponseWriter, reque
 	}
 }
 
-func (contr *Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, request *http.Request) {
+func (c Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, request *http.Request) {
 	user, err := getPasswordResetDto(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = contr.ResetPasswordService.ChangeUserPassword(
+	err = c.ResetPasswordService.ChangeUserPassword(
 		entities.GmailWithKeyPair{
 			Gmail: user.Gmail,
 			Key:   user.Key,
@@ -219,7 +219,7 @@ func (contr *Controller) ConfirmResetPassword(responseWriter http.ResponseWriter
 	http.Redirect(responseWriter, request, "/signin_page", http.StatusFound)
 }
 
-func (contr *Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
+func (c Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
 	tokenCookie, err := request.Cookie("token")
 
 	if err != nil {
@@ -231,13 +231,13 @@ func (contr *Controller) GetFullUserInfo(responseWriter http.ResponseWriter, req
 		return
 	}
 
-	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, contr.Settings.JwtSecret)
+	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, c.Settings.JwtSecret)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	fullUserInfo, err := contr.Storage.GetByGmail(dto.Gmail)
+	fullUserInfo, err := c.Storage.GetByGmail(dto.Gmail)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -254,7 +254,7 @@ func (contr *Controller) GetFullUserInfo(responseWriter http.ResponseWriter, req
 	responseWriter.Write(jsonBytes)
 }
 
-func (contr *Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, request *http.Request) {
+func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, request *http.Request) {
 	routeId, err := getRouteIdFromBody(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -272,19 +272,19 @@ func (contr *Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter,
 		return
 	}
 
-	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, contr.Settings.JwtSecret)
+	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, c.Settings.JwtSecret)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	user, err := contr.Storage.GetByGmail(dto.Gmail)
+	user, err := c.Storage.GetByGmail(dto.Gmail)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = contr.Storage.SubscribeToTheRoute(user, routeId)
+	err = c.Storage.SubscribeToTheRoute(user, routeId)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return

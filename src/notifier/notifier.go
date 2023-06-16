@@ -2,15 +2,25 @@ package notifier
 
 import (
 	"net/smtp"
+	"os"
+	"strings"
 )
+
+type Notifier func(to string, code string) error
 
 type SendFrom struct {
 	Gmail    string
 	Password string
 }
 
-func SendEmailNoificationFactory(sender SendFrom) func(to string, title string, body string) error {
-	return func(sendToGmail string, title string, body string) error {
+func SendEmailNoificationFactory(sender SendFrom, title string, templatePath string) Notifier {
+	data, err := os.ReadFile(templatePath)
+	if err != nil {
+		return nil
+	}
+
+	return func(sendToGmail string, code string) error {
+		body := strings.Replace(string(data), "CONFIRMATION_CODE", code, -1)
 		message := []byte(
 			"To: " + sendToGmail + "\r\n" +
 				"Subject: " + title + "\r\n" +

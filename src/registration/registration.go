@@ -3,8 +3,6 @@ package registration
 import (
 	"auth/src/entities"
 	"fmt"
-	"math/rand"
-	"strconv"
 )
 
 type createAndGetByGmailAbleStorage interface {
@@ -22,14 +20,11 @@ type RegistrationService struct {
 	UserStorage       createAndGetByGmailAbleStorage
 	FutureUserStorage gmailKeyPairStorage
 	Notify            func(gmail, key string) error
-}
-
-func (service *RegistrationService) generateKey() string {
-	return strconv.Itoa(rand.Intn(900000) + 100000)
+	GenerateCode      func() string
 }
 
 func (service *RegistrationService) GetInformatedFutureUser(userGmail string) (string, error) {
-	key := service.generateKey()
+	key := service.GenerateCode()
 	err := service.Notify(userGmail, key) // TODO: make gorutine with 5 sec deadline context
 
 	return key, err

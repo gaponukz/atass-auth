@@ -3,8 +3,6 @@ package resetPassword
 import (
 	"auth/src/entities"
 	"fmt"
-	"math/rand"
-	"strconv"
 )
 
 type updatePasswordGetByGmailAbleStorage interface {
@@ -22,10 +20,11 @@ type ResetPasswordService struct {
 	TemporaryStorage gmailKeyPairStorage
 	UserStorage      updatePasswordGetByGmailAbleStorage
 	Notify           func(gmail, key string) error
+	GenerateCode     func() string
 }
 
-func (service *ResetPasswordService) GenerateAndSendCodeToGmail(userGmail string) (string, error) {
-	key := strconv.Itoa(rand.Intn(900000) + 100000)
+func (service *ResetPasswordService) NotifyUser(userGmail string) (string, error) {
+	key := service.GenerateCode()
 	err := service.Notify(userGmail, key)
 
 	return key, err

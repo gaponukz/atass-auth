@@ -2,7 +2,7 @@ package controller
 
 import (
 	"auth/src/entities"
-	"auth/src/storage"
+	"auth/src/security"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -29,7 +29,7 @@ func isCredsValid(creds credentials, userStorage getByGmailAbleUserStorage) bool
 		return false
 	}
 
-	if expectedUser.Password != storage.GetSha256(creds.Password) {
+	if expectedUser.Password != security.GetSha256(creds.Password) {
 		return true
 	}
 

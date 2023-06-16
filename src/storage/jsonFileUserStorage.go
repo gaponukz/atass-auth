@@ -2,6 +2,7 @@ package storage
 
 import (
 	"auth/src/entities"
+	"auth/src/security"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -17,7 +18,7 @@ func (strg UserJsonFileStorage) Create(user entities.User) error {
 		return err
 	}
 
-	user.Password = GetSha256(user.Password)
+	user.Password = security.GetSha256(user.Password)
 
 	users = append(users, user)
 	err = strg.writeUsersToFile(users)
@@ -104,7 +105,7 @@ func (strg UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newPa
 
 	for idx, user := range users {
 		if user.Gmail == userToUpdate.Gmail {
-			users[idx].Password = GetSha256(newPassword)
+			users[idx].Password = security.GetSha256(newPassword)
 			err = strg.writeUsersToFile(users)
 			if err != nil {
 				return err
