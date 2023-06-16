@@ -18,11 +18,11 @@ func getExpirationTime(remember bool) time.Time {
 	return time.Now().Add(10 * time.Minute)
 }
 
-type getByGmailAbleuserStorage interface {
+type getByGmailAbleUserStorage interface {
 	GetByGmail(string) (entities.User, error)
 }
 
-func isUserAuthenticated(creds credentials, userStorage getByGmailAbleuserStorage) bool {
+func isCredsValid(creds credentials, userStorage getByGmailAbleUserStorage) bool {
 	expectedUser, err := userStorage.GetByGmail(creds.Gmail)
 
 	if err != nil {
@@ -46,7 +46,7 @@ func decodeRequestBody(request *http.Request, data interface{}) error {
 	return nil
 }
 
-func getSignInCredentialsFromBody(request *http.Request) (signInDTO, error) {
+func getSignInDto(request *http.Request) (signInDTO, error) {
 	var creds signInDTO
 
 	err := decodeRequestBody(request, &creds)
@@ -57,18 +57,18 @@ func getSignInCredentialsFromBody(request *http.Request) (signInDTO, error) {
 	return creds, nil
 }
 
-func getUserCredentialsFromBody(request *http.Request) (singUpDTO, error) {
-	var creds singUpDTO
+func getSignUpDto(request *http.Request) (signUpDTO, error) {
+	var creds signUpDTO
 
 	err := decodeRequestBody(request, &creds)
 	if err != nil {
-		return singUpDTO{}, err
+		return signUpDTO{}, err
 	}
 
 	return creds, nil
 }
 
-func getResetPasswordConfirmationFromBody(request *http.Request) (passwordResetDTO, error) {
+func getPasswordResetDto(request *http.Request) (passwordResetDTO, error) {
 	var creds passwordResetDTO
 
 	err := decodeRequestBody(request, &creds)
@@ -108,7 +108,7 @@ func getRouteIdFromBody(request *http.Request) (string, error) {
 	return getOneStringFieldFromBody(request, "routeId")
 }
 
-func loadStructIntoJson(data interface{}) ([]byte, error) {
+func dumpsJson(data interface{}) ([]byte, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return []byte(""), err

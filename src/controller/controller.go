@@ -26,13 +26,13 @@ type Controller struct {
 }
 
 func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *http.Request) {
-	creds, err := getSignInCredentialsFromBody(request)
+	creds, err := getSignInDto(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if !isUserAuthenticated(credentials{Gmail: creds.Gmail, Password: creds.Password}, contr.Storage) {
+	if !isCredsValid(credentials{Gmail: creds.Gmail, Password: creds.Password}, contr.Storage) {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -42,7 +42,7 @@ func (contr *Controller) Signin(responseWriter http.ResponseWriter, request *htt
 		return
 	}
 
-	token, expirationTime, err := getTemporaryToken(
+	token, expirationTime, err := genarateToken(
 		createTokenDTO{
 			Gmail:       creds.Gmail,
 			RememberHim: creds.RememberHim,
@@ -88,7 +88,7 @@ func (contr *Controller) Signup(responseWriter http.ResponseWriter, request *htt
 }
 
 func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter, request *http.Request) {
-	dto, err := getUserCredentialsFromBody(request)
+	dto, err := getSignUpDto(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -109,7 +109,7 @@ func (contr *Controller) ConfirmRegistration(responseWriter http.ResponseWriter,
 		return
 	}
 
-	token, expirationTime, err := getTemporaryToken(
+	token, expirationTime, err := genarateToken(
 		createTokenDTO{
 			Gmail: dto.Gmail,
 		},
@@ -140,7 +140,7 @@ func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *ht
 		return
 	}
 
-	claims, tokenErr := parseClaimsFromToken(tokenCookie.Value, contr.Settings.JwtSecret)
+	claims, tokenErr := getClaimsFromToken(tokenCookie.Value, contr.Settings.JwtSecret)
 
 	if tokenErr != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -152,7 +152,7 @@ func (contr *Controller) Refresh(responseWriter http.ResponseWriter, request *ht
 		return
 	}
 
-	newToken, expirationTime, newTokernErr := genarateNewTemporaryTokenFromClaims(claims, contr.Settings.JwtSecret)
+	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(claims, contr.Settings.JwtSecret)
 
 	if newTokernErr != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
@@ -198,7 +198,7 @@ func (contr *Controller) ResetPassword(responseWriter http.ResponseWriter, reque
 }
 
 func (contr *Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, request *http.Request) {
-	user, err := getResetPasswordConfirmationFromBody(request)
+	user, err := getPasswordResetDto(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -245,7 +245,7 @@ func (contr *Controller) GetFullUserInfo(responseWriter http.ResponseWriter, req
 
 	fullUserInfo.Password = ""
 
-	jsonBytes, err := loadStructIntoJson(fullUserInfo)
+	jsonBytes, err := dumpsJson(fullUserInfo)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return

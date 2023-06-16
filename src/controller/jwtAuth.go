@@ -13,7 +13,7 @@ type claims struct {
 	jwt.RegisteredClaims
 }
 
-func getTemporaryToken(dto createTokenDTO, jwtSecret string) (string, time.Time, error) {
+func genarateToken(dto createTokenDTO, jwtSecret string) (string, time.Time, error) {
 	expirationTime := getExpirationTime(dto.RememberHim)
 
 	claims := &claims{
@@ -51,7 +51,7 @@ func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (use
 	return dto, err
 }
 
-func parseClaimsFromToken(token, secret string) (*claims, error) {
+func getClaimsFromToken(token, secret string) (*claims, error) {
 	_claims := &claims{}
 	tkn, err := jwt.ParseWithClaims(token, _claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
@@ -68,7 +68,7 @@ func parseClaimsFromToken(token, secret string) (*claims, error) {
 	return _claims, nil
 }
 
-func genarateNewTemporaryTokenFromClaims(oldClaims *claims, secret string) (string, time.Time, error) {
+func genarateTokenFromClaims(oldClaims *claims, secret string) (string, time.Time, error) {
 	expirationTime := getExpirationTime(false)
 	oldClaims.ExpiresAt = jwt.NewNumericDate(expirationTime)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, oldClaims)

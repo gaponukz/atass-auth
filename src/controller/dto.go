@@ -20,7 +20,7 @@ type signInDTO struct {
 	RememberHim bool   `json:"rememberHim"`
 }
 
-type singUpDTO struct {
+type signUpDTO struct {
 	Gmail               string `json:"gmail"`
 	Password            string `json:"password"`
 	FullName            string `json:"fullName"`
