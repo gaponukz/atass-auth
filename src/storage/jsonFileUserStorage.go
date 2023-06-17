@@ -8,12 +8,16 @@ import (
 	"os"
 )
 
-type UserJsonFileStorage struct {
-	FilePath string
+type userJsonFileStorage struct {
+	filePath string
 }
 
-func (strg UserJsonFileStorage) Create(user entities.User) error {
-	users, err := strg.readUsersFromFile()
+func NewUserJsonFileStorage(filePath string) *userJsonFileStorage {
+	return &userJsonFileStorage{filePath: filePath}
+}
+
+func (s userJsonFileStorage) Create(user entities.User) error {
+	users, err := s.readUsersFromFile()
 	if err != nil {
 		return err
 	}
@@ -21,7 +25,7 @@ func (strg UserJsonFileStorage) Create(user entities.User) error {
 	user.Password = security.GetSha256(user.Password)
 
 	users = append(users, user)
-	err = strg.writeUsersToFile(users)
+	err = s.writeUsersToFile(users)
 	if err != nil {
 		return err
 	}
@@ -29,8 +33,8 @@ func (strg UserJsonFileStorage) Create(user entities.User) error {
 	return nil
 }
 
-func (strg UserJsonFileStorage) Delete(userToRemove entities.User) error {
-	users, err := strg.readUsersFromFile()
+func (s userJsonFileStorage) Delete(userToRemove entities.User) error {
+	users, err := s.readUsersFromFile()
 	if err != nil {
 		return err
 	}
@@ -49,7 +53,7 @@ func (strg UserJsonFileStorage) Delete(userToRemove entities.User) error {
 	}
 
 	users = append(users[:index], users[index+1:]...)
-	err = strg.writeUsersToFile(users)
+	err = s.writeUsersToFile(users)
 	if err != nil {
 		return err
 	}
@@ -57,8 +61,8 @@ func (strg UserJsonFileStorage) Delete(userToRemove entities.User) error {
 	return nil
 }
 
-func (stor UserJsonFileStorage) GetByGmail(gmail string) (entities.User, error) {
-	users, err := stor.readUsersFromFile()
+func (s userJsonFileStorage) GetByGmail(gmail string) (entities.User, error) {
+	users, err := s.readUsersFromFile()
 	if err != nil {
 		return entities.User{}, err
 	}
@@ -81,8 +85,8 @@ func (stor UserJsonFileStorage) GetByGmail(gmail string) (entities.User, error) 
 	return userFound, nil
 }
 
-func (strg UserJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
-	file, err := os.Open(strg.FilePath)
+func (s userJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
+	file, err := os.Open(s.filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +101,8 @@ func (strg UserJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
 	return users, nil
 }
 
-func (strg UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newPassword string) error {
-	users, err := strg.readUsersFromFile()
+func (s userJsonFileStorage) UpdatePassword(userToUpdate entities.User, newPassword string) error {
+	users, err := s.readUsersFromFile()
 	if err != nil {
 		return err
 	}
@@ -106,7 +110,7 @@ func (strg UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newPa
 	for idx, user := range users {
 		if user.Gmail == userToUpdate.Gmail {
 			users[idx].Password = security.GetSha256(newPassword)
-			err = strg.writeUsersToFile(users)
+			err = s.writeUsersToFile(users)
 			if err != nil {
 				return err
 			}
@@ -117,8 +121,8 @@ func (strg UserJsonFileStorage) UpdatePassword(userToUpdate entities.User, newPa
 	return fmt.Errorf("user %s not found", userToUpdate.Gmail)
 }
 
-func (strg UserJsonFileStorage) SubscribeToTheRoute(userToUpdate entities.User, routeId string) error {
-	users, err := strg.readUsersFromFile()
+func (s userJsonFileStorage) AddSubscribedRoute(userToUpdate entities.User, routeId string) error {
+	users, err := s.readUsersFromFile()
 	if err != nil {
 		return err
 	}
@@ -126,7 +130,7 @@ func (strg UserJsonFileStorage) SubscribeToTheRoute(userToUpdate entities.User, 
 	for idx, user := range users {
 		if user.Gmail == userToUpdate.Gmail {
 			users[idx].PurchasedRouteIds = append(users[idx].PurchasedRouteIds, routeId)
-			err = strg.writeUsersToFile(users)
+			err = s.writeUsersToFile(users)
 			if err != nil {
 				return err
 			}
@@ -137,8 +141,8 @@ func (strg UserJsonFileStorage) SubscribeToTheRoute(userToUpdate entities.User, 
 	return fmt.Errorf("user %s not found", userToUpdate.Gmail)
 }
 
-func (strg UserJsonFileStorage) writeUsersToFile(users []entities.User) error {
-	file, err := os.Create(strg.FilePath)
+func (s userJsonFileStorage) writeUsersToFile(users []entities.User) error {
+	file, err := os.Create(s.filePath)
 	if err != nil {
 		return err
 	}

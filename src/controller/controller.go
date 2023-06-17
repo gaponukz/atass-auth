@@ -15,7 +15,7 @@ type userStorage interface {
 	GetByGmail(string) (entities.User, error)
 
 	UpdatePassword(entities.User, string) error
-	SubscribeToTheRoute(entities.User, string) error
+	AddSubscribedRoute(entities.User, string) error
 }
 
 type Controller struct {
@@ -284,7 +284,7 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	err = c.Storage.SubscribeToTheRoute(user, routeId)
+	err = c.Storage.AddSubscribedRoute(user, routeId)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return

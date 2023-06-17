@@ -14,7 +14,11 @@ type Settings struct {
 	Port          int64  `json:"port"`
 }
 
-type DotEnvSettings struct{}
+type dotEnvSettings struct{}
+
+func NewDotEnvSettings() *dotEnvSettings {
+	return &dotEnvSettings{}
+}
 
 func parsePort(port string) int64 {
 	i, err := strconv.ParseInt(port, 10, 64)
@@ -25,7 +29,7 @@ func parsePort(port string) int64 {
 	return i
 }
 
-func (sts DotEnvSettings) Load() Settings {
+func (sts dotEnvSettings) Load() Settings {
 	godotenv.Load()
 
 	return Settings{
