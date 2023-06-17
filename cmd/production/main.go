@@ -35,20 +35,10 @@ func main() {
 
 	server := web.SetupServer(
 		controller.Controller{
-			Storage:  userStorage,
-			Settings: settings,
-			RegistrationService: registration.RegistrationService{
-				UserStorage:       userStorage,
-				FutureUserStorage: futureUserStor,
-				Notify:            sendRegisterGmail,
-				GenerateCode:      security.GenerateCode,
-			},
-			ResetPasswordService: resetPassword.ResetPasswordService{
-				TemporaryStorage: resetPassStor,
-				UserStorage:      userStorage,
-				Notify:           sendResetPasswordLetter,
-				GenerateCode:     security.GenerateCode,
-			},
+			Storage:              userStorage,
+			Settings:             settings,
+			RegistrationService:  registration.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, security.GenerateCode),
+			ResetPasswordService: resetPassword.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, security.GenerateCode),
 		},
 	)
 

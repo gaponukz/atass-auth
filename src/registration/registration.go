@@ -16,40 +16,54 @@ type gmailKeyPairStorage interface {
 	GetByUniqueKey(string) (entities.GmailWithKeyPair, error)
 }
 
-type RegistrationService struct {
-	UserStorage       createAndGetByGmailAbleStorage
-	FutureUserStorage gmailKeyPairStorage
-	Notify            func(gmail, key string) error
-	GenerateCode      func() string
+func NewRegistrationService(
+	userStorage createAndGetByGmailAbleStorage,
+	futureUserStorage gmailKeyPairStorage,
+	notify func(gmail, key string) error,
+	generateCode func() string,
+) *registrationService {
+	return &registrationService{
+		userStorage:       userStorage,
+		futureUserStorage: futureUserStorage,
+		notify:            notify,
+		generateCode:      generateCode,
+	}
 }
 
-func (service *RegistrationService) GetInformatedFutureUser(userGmail string) (string, error) {
-	key := service.GenerateCode()
-	err := service.Notify(userGmail, key) // TODO: make gorutine with 5 sec deadline context
+type registrationService struct {
+	userStorage       createAndGetByGmailAbleStorage
+	futureUserStorage gmailKeyPairStorage
+	notify            func(gmail, key string) error
+	generateCode      func() string
+}
+
+func (s registrationService) GetInformatedFutureUser(userGmail string) (string, error) {
+	key := s.generateCode()
+	err := s.notify(userGmail, key) // TODO: make gorutine with 5 sec deadline context
 
 	return key, err
 }
 
-func (service *RegistrationService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
-	mayUser, _ := service.UserStorage.GetByGmail(user.Gmail)
+func (s registrationService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
+	mayUser, _ := s.userStorage.GetByGmail(user.Gmail)
 
 	if mayUser.Gmail != "" {
 		return fmt.Errorf("already registered gmail")
 	}
 
-	return service.FutureUserStorage.Create(user)
+	return s.futureUserStorage.Create(user)
 }
 
-func (service *RegistrationService) RegisterUserOnRightCode(pair entities.GmailWithKeyPair, user entities.User) error {
-	_, err := service.FutureUserStorage.GetByUniqueKey(pair.Key)
+func (s registrationService) RegisterUserOnRightCode(pair entities.GmailWithKeyPair, user entities.User) error {
+	_, err := s.futureUserStorage.GetByUniqueKey(pair.Key)
 	if err != nil {
 		return fmt.Errorf("user not found")
 	}
 
-	err = service.FutureUserStorage.Delete(pair)
+	err = s.futureUserStorage.Delete(pair)
 	if err != nil {
 		return fmt.Errorf("could not remove user")
 	}
 
-	return service.UserStorage.Create(user)
+	return s.userStorage.Create(user)
 }

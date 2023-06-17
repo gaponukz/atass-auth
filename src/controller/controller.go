@@ -2,8 +2,6 @@ package controller
 
 import (
 	"auth/src/entities"
-	"auth/src/registration"
-	"auth/src/resetPassword"
 	"auth/src/settings"
 	"net/http"
 	"time"
@@ -18,11 +16,23 @@ type userStorage interface {
 	AddSubscribedRoute(entities.User, string) error
 }
 
+type registrationService interface {
+	GetInformatedFutureUser(string) (string, error)
+	AddUserToTemporaryStorage(entities.GmailWithKeyPair) error
+	RegisterUserOnRightCode(entities.GmailWithKeyPair, entities.User) error
+}
+
+type resetPasswordService interface {
+	NotifyUser(string) (string, error)
+	AddUserToTemporaryStorage(entities.GmailWithKeyPair) error
+	ChangeUserPassword(entities.GmailWithKeyPair, string) error
+}
+
 type Controller struct {
 	Storage              userStorage
 	Settings             settings.Settings
-	RegistrationService  registration.RegistrationService
-	ResetPasswordService resetPassword.ResetPasswordService
+	RegistrationService  registrationService
+	ResetPasswordService resetPasswordService
 }
 
 func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Request) {

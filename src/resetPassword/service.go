@@ -16,45 +16,59 @@ type gmailKeyPairStorage interface {
 	GetByUniqueKey(string) (entities.GmailWithKeyPair, error)
 }
 
-type ResetPasswordService struct {
-	TemporaryStorage gmailKeyPairStorage
-	UserStorage      updatePasswordGetByGmailAbleStorage
-	Notify           func(gmail, key string) error
-	GenerateCode     func() string
+type resetPasswordService struct {
+	temporaryStorage gmailKeyPairStorage
+	userStorage      updatePasswordGetByGmailAbleStorage
+	notify           func(gmail, key string) error
+	generateCode     func() string
 }
 
-func (service *ResetPasswordService) NotifyUser(userGmail string) (string, error) {
-	key := service.GenerateCode()
-	err := service.Notify(userGmail, key)
+func NewResetPasswordService(
+	userStorage updatePasswordGetByGmailAbleStorage,
+	temporaryStorage gmailKeyPairStorage,
+	notify func(gmail, key string) error,
+	generateCode func() string,
+) *resetPasswordService {
+	return &resetPasswordService{
+		temporaryStorage: temporaryStorage,
+		userStorage:      userStorage,
+		notify:           notify,
+		generateCode:     generateCode,
+	}
+}
+
+func (s resetPasswordService) NotifyUser(userGmail string) (string, error) {
+	key := s.generateCode()
+	err := s.notify(userGmail, key)
 
 	return key, err
 }
 
-func (service *ResetPasswordService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
-	_, err := service.UserStorage.GetByGmail(user.Gmail)
+func (s resetPasswordService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
+	_, err := s.userStorage.GetByGmail(user.Gmail)
 
 	if err != nil {
 		return err
 	}
 
-	return service.TemporaryStorage.Create(user)
+	return s.temporaryStorage.Create(user)
 }
 
-func (service *ResetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair, newPassword string) error {
-	_, err := service.TemporaryStorage.GetByUniqueKey(user.Key)
+func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair, newPassword string) error {
+	_, err := s.temporaryStorage.GetByUniqueKey(user.Key)
 	if err != nil {
 		return fmt.Errorf("user not found")
 	}
 
-	err = service.TemporaryStorage.Delete(user)
+	err = s.temporaryStorage.Delete(user)
 	if err != nil {
 		return fmt.Errorf("could not remove user")
 	}
 
-	realUser, err := service.UserStorage.GetByGmail(user.Gmail)
+	realUser, err := s.userStorage.GetByGmail(user.Gmail)
 	if err != nil {
 		return err
 	}
 
-	return service.UserStorage.UpdatePassword(realUser, newPassword)
+	return s.userStorage.UpdatePassword(realUser, newPassword)
 }

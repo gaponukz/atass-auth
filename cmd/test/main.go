@@ -22,18 +22,18 @@ func main() {
 		controller.Controller{
 			Storage:  userStorage,
 			Settings: settings,
-			RegistrationService: registration.RegistrationService{
-				UserStorage:       userStorage,
-				FutureUserStorage: futureUserStor,
-				Notify:            func(gmail string, key string) error { return nil },
-				GenerateCode:      func() string { return "12345" },
-			},
-			ResetPasswordService: resetPassword.ResetPasswordService{
-				TemporaryStorage: resetPassStor,
-				UserStorage:      userStorage,
-				Notify:           func(gmail string, key string) error { return nil },
-				GenerateCode:     func() string { return "12345" },
-			},
+			RegistrationService: registration.NewRegistrationService(
+				userStorage,
+				futureUserStor,
+				func(gmail string, key string) error { return nil },
+				func() string { return "12345" },
+			),
+			ResetPasswordService: resetPassword.NewResetPasswordService(
+				userStorage,
+				resetPassStor,
+				func(gmail string, key string) error { return nil },
+				func() string { return "12345" },
+			),
 		},
 	)
 
