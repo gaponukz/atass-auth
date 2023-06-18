@@ -18,7 +18,7 @@ func main() {
 	resetPassStor := storage.NewRedisTemporaryStorage(5*time.Minute, "reset")
 	userStorage := storage.NewUserJsonFileStorage("users.json")
 
-	server := web.SetupServer(
+	server := web.SetupTestServer(
 		controller.Controller{
 			Storage:  userStorage,
 			Settings: settings,

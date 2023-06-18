@@ -37,7 +37,24 @@ type controller interface {
 	SubscribeToTheRoute(rw http.ResponseWriter, r *http.Request)
 }
 
-func SetupServer(c controller) *http.Server {
+func enableCORS(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Authorization, Accept, Content-Type, X-Requested-With")
+		w.Header().Set("Access-Control-Max-Age", "1728000")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		handler.ServeHTTP(w, r)
+	})
+}
+
+func getMuxFromController(c controller) *http.ServeMux {
 	httpRoute := http.NewServeMux()
 
 	httpRoute.HandleFunc("/signup", requiredMethod(c.Signup, http.MethodPost))
@@ -51,8 +68,23 @@ func SetupServer(c controller) *http.Server {
 	httpRoute.HandleFunc("/getUserInfo", c.GetFullUserInfo)
 	httpRoute.HandleFunc("/subscribeUserToTheRoute", requiredMethod(c.SubscribeToTheRoute, http.MethodPost))
 
+	return httpRoute
+}
+
+func SetupServer(c controller) *http.Server {
+	handler := getMuxFromController(c)
+
 	return &http.Server{
 		Addr:    ":8080",
-		Handler: loggingMiddleware(httpRoute),
+		Handler: loggingMiddleware(handler),
+	}
+}
+
+func SetupTestServer(c controller) *http.Server {
+	handler := getMuxFromController(c)
+
+	return &http.Server{
+		Addr:    ":8080",
+		Handler: enableCORS(loggingMiddleware(handler)),
 	}
 }
