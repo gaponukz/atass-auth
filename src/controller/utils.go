@@ -24,16 +24,11 @@ type getByGmailAbleUserStorage interface {
 
 func isCredsValid(creds credentials, userStorage getByGmailAbleUserStorage) bool {
 	expectedUser, err := userStorage.GetByGmail(creds.Gmail)
-
 	if err != nil {
 		return false
 	}
 
-	if expectedUser.Password != security.GetSha256(creds.Password) {
-		return true
-	}
-
-	return true
+	return expectedUser.Password == security.GetSha256(creds.Password)
 }
 
 func decodeRequestBody(request *http.Request, data interface{}) error {
