@@ -3,6 +3,7 @@ package registration
 import (
 	"auth/src/entities"
 	"auth/src/registration"
+	"auth/tests/unit/mocks"
 	"testing"
 )
 
@@ -26,8 +27,8 @@ func TestSendGeneratedCode(t *testing.T) {
 }
 
 func TestAddUserToTemporaryStorage(t *testing.T) {
-	sm := NewMockStorage()
-	tsm := NewTemporaryStorageMock()
+	sm := mocks.NewMockStorage()
+	tsm := mocks.NewTemporaryStorageMock()
 	s := registration.NewRegistrationService(sm, tsm, nil, nil)
 	testUser := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
 
@@ -47,8 +48,8 @@ func TestAddUserToTemporaryStorage(t *testing.T) {
 }
 
 func TestAddAlreadyRegisteredUserToTemporaryStorage(t *testing.T) {
-	sm := NewMockStorage()
-	tsm := NewTemporaryStorageMock()
+	sm := mocks.NewMockStorage()
+	tsm := mocks.NewTemporaryStorageMock()
 	s := registration.NewRegistrationService(sm, tsm, nil, nil)
 	testUser := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
 
@@ -64,8 +65,8 @@ func TestAddAlreadyRegisteredUserToTemporaryStorage(t *testing.T) {
 }
 
 func TestRegisterUserOnRightCode(t *testing.T) {
-	sm := NewMockStorage()
-	tsm := NewTemporaryStorageMock()
+	sm := mocks.NewMockStorage()
+	tsm := mocks.NewTemporaryStorageMock()
 	s := registration.NewRegistrationService(sm, tsm, nil, func() string { return "12345" })
 
 	const testGmail = "test@gmail.com"
@@ -96,5 +97,4 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 	if u.Gmail != testGmail {
 		t.Errorf("after register expected %s, got %s", testGmail, user.Gmail)
 	}
-
 }
