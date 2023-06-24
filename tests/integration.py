@@ -25,6 +25,14 @@ with requests.Session() as session:
 
     response = session.post(f'{api_url}/signin', json={
         "gmail": "gaponukz@knu.ua",
+        "password": "wrongpassword",
+        "rememberHim": True
+    })
+
+    assert response.status_code == 401
+
+    response = session.post(f'{api_url}/signin', json={
+        "gmail": "gaponukz@knu.ua",
         "password": "somepass",
         "rememberHim": True
     })
