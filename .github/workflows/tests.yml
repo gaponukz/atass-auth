@@ -1,0 +1,16 @@
+name: tests
+on:
+  push:
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          cache: false
+      - name: Run unit tests for registration
+        run: go test ./tests/unit/registration

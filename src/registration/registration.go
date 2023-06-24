@@ -37,7 +37,7 @@ type registrationService struct {
 	generateCode      func() string
 }
 
-func (s registrationService) GetInformatedFutureUser(userGmail string) (string, error) {
+func (s registrationService) SendGeneratedCode(userGmail string) (string, error) {
 	key := s.generateCode()
 	err := s.notify(userGmail, key) // TODO: make gorutine with 5 sec deadline context
 

@@ -30,7 +30,10 @@ func parsePort(port string) int64 {
 }
 
 func (sts dotEnvSettings) Load() Settings {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		return Settings{}
+	}
 
 	return Settings{
 		JwtSecret:     os.Getenv("jwtSecret"),

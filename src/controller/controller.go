@@ -17,7 +17,7 @@ type userStorage interface {
 }
 
 type registrationService interface {
-	GetInformatedFutureUser(string) (string, error)
+	SendGeneratedCode(string) (string, error)
 	AddUserToTemporaryStorage(entities.GmailWithKeyPair) error
 	RegisterUserOnRightCode(entities.GmailWithKeyPair, entities.User) error
 }
@@ -80,7 +80,7 @@ func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Req
 		return
 	}
 
-	key, err := c.RegistrationService.GetInformatedFutureUser(gmail)
+	key, err := c.RegistrationService.SendGeneratedCode(gmail)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
