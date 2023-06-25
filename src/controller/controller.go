@@ -225,8 +225,6 @@ func (c Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, req
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	http.Redirect(responseWriter, request, "/signin_page", http.StatusFound)
 }
 
 func (c Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
