@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"auth/src/controller"
@@ -13,10 +14,22 @@ import (
 )
 
 func main() {
+	databaseFilename := "test.json"
+	err := os.WriteFile(databaseFilename, []byte("[]"), 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		err := os.Remove(databaseFilename)
+		if err != nil {
+			fmt.Printf("Warning: file not removed")
+		}
+	}()
+
 	settings := settings.NewDotEnvSettings().Load()
 	futureUserStor := storage.NewRedisTemporaryStorage(30*time.Minute, "register")
 	resetPassStor := storage.NewRedisTemporaryStorage(5*time.Minute, "reset")
-	userStorage := storage.NewUserJsonFileStorage("users.json")
+	userStorage := storage.NewUserJsonFileStorage(databaseFilename)
 
 	server := web.SetupTestServer(
 		controller.Controller{
@@ -39,7 +52,7 @@ func main() {
 
 	fmt.Printf("⚡️[server]: Server is running at http://localhost:%d", settings.Port)
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil {
 		fmt.Printf("Server error: %v", err)
 	}
