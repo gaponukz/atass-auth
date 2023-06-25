@@ -67,3 +67,23 @@ class TestAPI:
         response = session.get(f'{api_url}/getUserInfo')
         data = response.json()
         assert "g24g-h24hg2w-gh6j35w-w45g" in data['purchasedRouteIds']
+    
+    def test_reset_password(self, session: requests.Session):
+        response = session.post(f'{api_url}/resetPassword', json={"gmail": "gaponukz@knu.ua"})
+        assert response.status_code == 200
+
+        time.sleep(1)
+        response = session.post(f'{api_url}/confirmResetPassword', json={
+            "gmail": "gaponukz@knu.ua",
+            "password": "newpassword",
+            "key": "12345"
+        })
+
+    def test_login_with_new_password(self, session: requests.Session):
+        response = session.post(f'{api_url}/signin', json={
+            "gmail": "gaponukz@knu.ua",
+            "password": "newpassword",
+            "rememberHim": True
+        })
+        assert response.status_code == 200
+        assert session.cookies.get("token") is not None
