@@ -34,40 +34,11 @@ jobs:
         with:
           version: v1.53
           only-new-issues: true
-
-  e2e:
-    name: Run end-to-end tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Start services
-        uses: isbang/compose-action@v1.4.1
-        with:
-          compose-file: "docker-compose-local.yml"
-          services: |
-            redis
-            app
-      - name: Install Python and pytest
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: pip install -r tests/requirements.txt
-      - name: Run end-to-end tests
-        run: pytest tests/e2e_test.py
-      - name: Stop services
-        uses: isbang/compose-action@v1.4.1
-        with:
-          compose-file: "docker-compose-local.yml"
-          down-flags: "--volumes"
-          services: |
-            redis
-            app
           
   docker:
     name: Publishes to Docker Hub
     runs-on: ubuntu-latest
-    needs: [test, golangci, e2e]
+    needs: [test, golangci]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

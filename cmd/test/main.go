@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"auth/src/controller"
@@ -15,16 +14,16 @@ import (
 
 func main() {
 	databaseFilename := "test.json"
-	err := os.WriteFile(databaseFilename, []byte("[]"), 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		err := os.Remove(databaseFilename)
-		if err != nil {
-			fmt.Printf("Warning: file not removed\n")
-		}
-	}()
+	// err := os.WriteFile(databaseFilename, []byte("[]"), 0644)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer func() {
+	// 	err := os.Remove(databaseFilename)
+	// 	if err != nil {
+	// 		fmt.Printf("Warning: file not removed\n")
+	// 	}
+	// }()
 
 	settings := settings.NewDotEnvSettings().Load()
 	futureUserStor := storage.NewRedisTemporaryStorage(30*time.Minute, "register")
@@ -52,7 +51,7 @@ func main() {
 
 	fmt.Println("⚡️[server]: Server is running at http://localhost:8080")
 
-	err = server.ListenAndServe()
+	err := server.ListenAndServe()
 	if err != nil {
 		fmt.Printf("Server error: %v\n", err)
 	}
