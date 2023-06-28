@@ -29,3 +29,6 @@ docker-compose.yml
 .golangci.yml
 Dockerfile
 README.md
+.github/workflows/
+code_testing.yml
+.vscode
