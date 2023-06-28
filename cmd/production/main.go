@@ -42,10 +42,10 @@ func main() {
 		},
 	)
 
-	fmt.Printf("⚡️[server]: Server is running at http://localhost:%d", settings.Port)
+	fmt.Printf("⚡️[server]: Server is running at http://localhost:%d\n", settings.Port)
 
 	err := server.ListenAndServe()
 	if err != nil {
-		fmt.Printf("Server error: %v", err)
+		fmt.Printf("Server error: %v\n", err)
 	}
 }

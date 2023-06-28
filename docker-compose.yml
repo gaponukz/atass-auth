@@ -1,14 +1,12 @@
-version: '3'
+version: "3.9"
 services:
-  redis-stack-server:
+  redis:
     image: redis/redis-stack-server:latest
     ports:
-      - 6379:6379
-
-  atassauth:
-    build:
-      context: .
+      - "6379:6379"
+  app:
+    image: gaponukz/atassauth
     ports:
-      - 8080:8080
+      - "8080:8080"
     depends_on:
-      - redis-stack-server
+      - redis

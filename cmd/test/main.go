@@ -22,7 +22,7 @@ func main() {
 	defer func() {
 		err := os.Remove(databaseFilename)
 		if err != nil {
-			fmt.Printf("Warning: file not removed")
+			fmt.Printf("Warning: file not removed\n")
 		}
 	}()
 
@@ -50,10 +50,10 @@ func main() {
 		},
 	)
 
-	fmt.Printf("⚡️[server]: Server is running at http://localhost:%d", settings.Port)
+	fmt.Println("⚡️[server]: Server is running at http://localhost:8080")
 
 	err = server.ListenAndServe()
 	if err != nil {
-		fmt.Printf("Server error: %v", err)
+		fmt.Printf("Server error: %v\n", err)
 	}
 }
