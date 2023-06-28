@@ -43,7 +43,7 @@ jobs:
       - name: Start services
         uses: isbang/compose-action@v1.4.1
         with:
-          compose-file: "docker-compose.yml"
+          compose-file: "docker-compose-local.yml"
           services: |
             redis
             app
@@ -58,7 +58,7 @@ jobs:
       - name: Stop services
         uses: isbang/compose-action@v1.4.1
         with:
-          compose-file: "docker-compose.yml"
+          compose-file: "docker-compose-local.yml"
           down-flags: "--volumes"
           services: |
             redis
