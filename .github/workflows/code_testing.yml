@@ -38,28 +38,31 @@ jobs:
   e2e:
     name: Run end-to-end tests
     runs-on: ubuntu-latest
-    services:
-      redis:
-        image: redis/redis-stack-server:latest
-        ports:
-          - 6379:6379
-        options: --name redis-stack-server
     steps:
       - uses: actions/checkout@v3
       - name: Start services
-        run: docker-compose up -d
+        uses: isbang/compose-action@v1.4.1
+        with:
+          compose-file: "docker-compose.yml"
+          services: |
+            redis
+            app
       - name: Install Python and pytest
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
       - name: Install dependencies
         run: pip install -r tests/requirements.txt
-      - name: Wait for services to start
-        run: sleep 5
       - name: Run end-to-end tests
         run: pytest tests/e2e_test.py
       - name: Stop services
-        run: docker-compose down
+        uses: isbang/compose-action@v1.4.1
+        with:
+          compose-file: "docker-compose.yml"
+          down-flags: "--volumes"
+          services: |
+            redis
+            app
           
   docker:
     name: Publishes to Docker Hub
