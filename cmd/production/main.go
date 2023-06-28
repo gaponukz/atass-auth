@@ -16,8 +16,8 @@ import (
 
 func main() {
 	settings := settings.NewDotEnvSettings().Load()
-	futureUserStor := storage.NewRedisTemporaryStorage(30*time.Minute, "register")
-	resetPassStor := storage.NewRedisTemporaryStorage(5*time.Minute, "reset")
+	futureUserStor := storage.NewRedisTemporaryStorage(settings.RedisAddress, 30*time.Minute, "register")
+	resetPassStor := storage.NewRedisTemporaryStorage(settings.RedisAddress, 5*time.Minute, "reset")
 	userStorage := storage.NewUserJsonFileStorage("users.json")
 	sendFromCreds := notifier.SendFrom{Gmail: settings.Gmail, Password: settings.GmailPassword}
 

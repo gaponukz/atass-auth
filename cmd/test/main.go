@@ -26,8 +26,8 @@ func main() {
 	// }()
 
 	settings := settings.NewDotEnvSettings().Load()
-	futureUserStor := storage.NewRedisTemporaryStorage(30*time.Minute, "register")
-	resetPassStor := storage.NewRedisTemporaryStorage(5*time.Minute, "reset")
+	futureUserStor := storage.NewRedisTemporaryStorage(settings.RedisAddress, 30*time.Minute, "register")
+	resetPassStor := storage.NewRedisTemporaryStorage(settings.RedisAddress, 5*time.Minute, "reset")
 	userStorage := storage.NewUserJsonFileStorage(databaseFilename)
 
 	server := web.SetupTestServer(
@@ -49,7 +49,8 @@ func main() {
 		},
 	)
 
-	fmt.Println("⚡️[server]: Server is running at http://localhost:8080")
+	fmt.Printf("⚡️[redis]: is running at: %s\n", settings.RedisAddress)
+	fmt.Println("⚡️[server]: is running at http://localhost:8080")
 
 	err := server.ListenAndServe()
 	if err != nil {

@@ -17,9 +17,9 @@ type gmailWithKeyPairRedisStorage struct {
 	expiration time.Duration
 }
 
-func NewRedisTemporaryStorage(expiration time.Duration, prefix string) *gmailWithKeyPairRedisStorage {
+func NewRedisTemporaryStorage(address string, expiration time.Duration, prefix string) *gmailWithKeyPairRedisStorage {
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "redis:6379",
+		Addr: address,
 	})
 
 	return &gmailWithKeyPairRedisStorage{

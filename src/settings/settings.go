@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -12,6 +13,7 @@ type Settings struct {
 	Gmail         string `json:"gmail"`
 	GmailPassword string `json:"gmailPassword"`
 	Port          int64  `json:"port"`
+	RedisAddress  string `json:"redisAddress"`
 }
 
 type dotEnvSettings struct{}
@@ -29,10 +31,18 @@ func parsePort(port string) int64 {
 	return i
 }
 
+func checkRedis(r string) string {
+	if r == "" {
+		return "localhost:6379"
+	}
+
+	return r
+}
+
 func (sts dotEnvSettings) Load() Settings {
 	err := godotenv.Load()
 	if err != nil {
-		return Settings{}
+		fmt.Println(err.Error())
 	}
 
 	return Settings{
@@ -40,5 +50,6 @@ func (sts dotEnvSettings) Load() Settings {
 		Gmail:         os.Getenv("gmail"),
 		GmailPassword: os.Getenv("gmailPassword"),
 		Port:          parsePort(os.Getenv("port")),
+		RedisAddress:  checkRedis(os.Getenv("redisAddress")),
 	}
 }

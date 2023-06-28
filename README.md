@@ -159,6 +159,8 @@ Before usage you need to create `.env` file:
 gmail=user@gmail.com
 gmailPassword=userpassowrf123
 jwtSecret=secret
+redis=localhost:6379
+port=8080
 ```
 ### Dependencies
 * Redis client

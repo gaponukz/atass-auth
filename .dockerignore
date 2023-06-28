@@ -22,3 +22,10 @@
 __pycache__
 .pytest_cache
 go.work
+test.json
+user.json
+docker-compose.yml
+.gitignore
+.golangci.yml
+Dockerfile
+README.md

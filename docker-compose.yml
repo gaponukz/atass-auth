@@ -5,8 +5,12 @@ services:
     ports:
       - "6379:6379"
   app:
-    image: gaponukz/atassauth
+    build: .
     ports:
       - "8080:8080"
     depends_on:
       - redis
+    env_file:
+      - .env
+    volumes:
+      - ./test.json:/app/test.json
