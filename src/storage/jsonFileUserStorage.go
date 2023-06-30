@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/google/uuid"
 )
 
 type userJsonFileStorage struct {
@@ -16,24 +18,65 @@ func NewUserJsonFileStorage(filePath string) *userJsonFileStorage {
 	return &userJsonFileStorage{filePath: filePath}
 }
 
-func (s userJsonFileStorage) Create(user entities.User) error {
+func (s userJsonFileStorage) Create(user entities.User) (entities.UserEntity, error) {
+	users, err := s.readUsersFromFile()
+	if err != nil {
+		return entities.UserEntity{}, err
+	}
+
+	user.Password = security.GetSha256(user.Password)
+	userEntity := entities.UserEntity{ID: uuid.New().String(), User: user}
+	users = append(users, userEntity)
+	err = s.writeUsersToFile(users)
+
+	if err != nil {
+		return entities.UserEntity{}, err
+	}
+
+	return userEntity, nil
+}
+
+func (s userJsonFileStorage) ReadAll() ([]entities.UserEntity, error) {
+	return s.readUsersFromFile()
+}
+
+func (s userJsonFileStorage) ByID(id string) (entities.UserEntity, error) {
+	users, err := s.readUsersFromFile()
+	if err != nil {
+		return entities.UserEntity{}, err
+	}
+
+	for _, user := range users {
+		if user.ID == id {
+			return user, nil
+		}
+	}
+
+	return entities.UserEntity{}, fmt.Errorf("user %s not found", id)
+}
+
+func (s userJsonFileStorage) Update(userToUpdate entities.UserEntity) error {
 	users, err := s.readUsersFromFile()
 	if err != nil {
 		return err
 	}
 
-	user.Password = security.GetSha256(user.Password)
+	for idx, user := range users {
+		if user.ID == userToUpdate.ID {
+			users[idx] = userToUpdate
+			err = s.writeUsersToFile(users)
+			if err != nil {
+				return err
+			}
 
-	users = append(users, user)
-	err = s.writeUsersToFile(users)
-	if err != nil {
-		return err
+			return nil
+		}
 	}
 
-	return nil
+	return fmt.Errorf("user %s not found", userToUpdate.ID)
 }
 
-func (s userJsonFileStorage) Delete(userToRemove entities.User) error {
+func (s userJsonFileStorage) Delete(id string) error {
 	users, err := s.readUsersFromFile()
 	if err != nil {
 		return err
@@ -42,7 +85,7 @@ func (s userJsonFileStorage) Delete(userToRemove entities.User) error {
 	index := -1
 
 	for idx, user := range users {
-		if user.Gmail == userToRemove.Gmail {
+		if user.ID == id {
 			index = idx
 			break
 		}
@@ -61,38 +104,14 @@ func (s userJsonFileStorage) Delete(userToRemove entities.User) error {
 	return nil
 }
 
-func (s userJsonFileStorage) GetByGmail(gmail string) (entities.User, error) {
-	users, err := s.readUsersFromFile()
-	if err != nil {
-		return entities.User{}, err
-	}
-
-	var userFound entities.User
-	userFoundIndex := -1
-
-	for idx, user := range users {
-		if user.Gmail == gmail {
-			userFound = user
-			userFoundIndex = idx
-			break
-		}
-	}
-
-	if userFoundIndex == -1 {
-		return entities.User{}, fmt.Errorf("user %s not found", gmail)
-	}
-
-	return userFound, nil
-}
-
-func (s userJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
+func (s userJsonFileStorage) readUsersFromFile() ([]entities.UserEntity, error) {
 	file, err := os.Open(s.filePath)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	var users []entities.User
+	var users []entities.UserEntity
 	err = json.NewDecoder(file).Decode(&users)
 	if err != nil {
 		return nil, err
@@ -101,47 +120,7 @@ func (s userJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
 	return users, nil
 }
 
-func (s userJsonFileStorage) UpdatePassword(userToUpdate entities.User, newPassword string) error {
-	users, err := s.readUsersFromFile()
-	if err != nil {
-		return err
-	}
-
-	for idx, user := range users {
-		if user.Gmail == userToUpdate.Gmail {
-			users[idx].Password = security.GetSha256(newPassword)
-			err = s.writeUsersToFile(users)
-			if err != nil {
-				return err
-			}
-			return nil
-		}
-	}
-
-	return fmt.Errorf("user %s not found", userToUpdate.Gmail)
-}
-
-func (s userJsonFileStorage) AddSubscribedRoute(userToUpdate entities.User, routeId string) error {
-	users, err := s.readUsersFromFile()
-	if err != nil {
-		return err
-	}
-
-	for idx, user := range users {
-		if user.Gmail == userToUpdate.Gmail {
-			users[idx].PurchasedRouteIds = append(users[idx].PurchasedRouteIds, routeId)
-			err = s.writeUsersToFile(users)
-			if err != nil {
-				return err
-			}
-			return nil
-		}
-	}
-
-	return fmt.Errorf("user %s not found", userToUpdate.Gmail)
-}
-
-func (s userJsonFileStorage) writeUsersToFile(users []entities.User) error {
+func (s userJsonFileStorage) writeUsersToFile(users []entities.UserEntity) error {
 	file, err := os.Create(s.filePath)
 	if err != nil {
 		return err

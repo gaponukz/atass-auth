@@ -6,11 +6,11 @@ type credentials struct {
 }
 
 type userInfoDTO struct {
-	Gmail string `json:"gmail"`
+	ID string `json:"id"`
 }
 
 type createTokenDTO struct {
-	Gmail       string `json:"gmail"`
+	ID          string `json:"id"`
 	RememberHim bool   `json:"rememberHim"`
 }
 

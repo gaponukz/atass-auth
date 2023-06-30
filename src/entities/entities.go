@@ -9,6 +9,11 @@ type User struct {
 	PurchasedRouteIds   []string `json:"purchasedRouteIds"`
 }
 
+type UserEntity struct {
+	ID string
+	User
+}
+
 type GmailWithKeyPair struct {
 	Gmail string `json:"gmail"`
 	Key   string `json:"id"`
