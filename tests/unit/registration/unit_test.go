@@ -3,6 +3,7 @@ package registration
 import (
 	"auth/src/entities"
 	"auth/src/registration"
+	"auth/src/storage"
 	"auth/tests/unit/mocks"
 	"testing"
 )
@@ -53,7 +54,7 @@ func TestAddAlreadyRegisteredUserToTemporaryStorage(t *testing.T) {
 	s := registration.NewRegistrationService(sm, tsm, nil, nil)
 	testUser := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
 
-	err := sm.Create(entities.User{Gmail: "user@gmail.com"})
+	_, err := sm.Create(entities.User{Gmail: "user@gmail.com"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,8 +79,7 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = s.RegisterUserOnRightCode(pair, user)
-
+	_, err = s.RegisterUserOnRightCode(pair, user)
 	if err != nil {
 		t.Errorf("RegisterUserOnRightCode error: %v", err)
 	}
@@ -89,7 +89,14 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 		t.Error("pair still awiable in temporary storage")
 	}
 
-	u, err := sm.GetByGmail(testGmail)
+	users, err := sm.ReadAll()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	u, err := storage.Find(users, func(user entities.UserEntity) bool {
+		return user.Gmail == testGmail
+	})
 	if err != nil {
 		t.Errorf("GetByGmail error: %v", err)
 	}
