@@ -3,6 +3,7 @@ package resetpassword
 import (
 	"auth/src/entities"
 	"auth/src/resetPassword"
+	"auth/src/security"
 	"auth/src/storage"
 	"auth/tests/unit/mocks"
 	"testing"
@@ -97,7 +98,7 @@ func TestChangeUserPassword(t *testing.T) {
 		t.Errorf("error getting user after reseting: %v", err)
 	}
 
-	if user.Password != "new" {
-		t.Errorf("password not changed: expected new, got %s", user.Password)
+	if user.Password != security.GetSha256("new") {
+		t.Error("password not correct after changing")
 	}
 }
