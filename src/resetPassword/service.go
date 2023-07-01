@@ -2,6 +2,7 @@ package resetPassword
 
 import (
 	"auth/src/entities"
+	"auth/src/security"
 	"auth/src/storage"
 	"fmt"
 )
@@ -86,7 +87,7 @@ func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair,
 		return err
 	}
 
-	userToUpdate.Password = newPassword
+	userToUpdate.Password = security.GetSha256(newPassword)
 
 	return s.userStorage.Update(userToUpdate)
 }
