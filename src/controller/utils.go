@@ -3,6 +3,7 @@ package controller
 import (
 	"auth/src/entities"
 	"auth/src/security"
+	"auth/src/storage"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,17 +19,24 @@ func getExpirationTime(remember bool) time.Time {
 	return time.Now().Add(10 * time.Minute)
 }
 
-type getByGmailAbleUserStorage interface {
-	GetByGmail(string) (entities.User, error)
+type userRepository interface {
+	ReadAll() ([]entities.UserEntity, error)
 }
 
-func isCredsValid(creds credentials, userStorage getByGmailAbleUserStorage) bool {
-	expectedUser, err := userStorage.GetByGmail(creds.Gmail)
+func getIDifCredsValid(creds credentials, userStorage userRepository) (string, error) {
+	users, err := userStorage.ReadAll()
 	if err != nil {
-		return false
+		return "", err
 	}
 
-	return expectedUser.Password == security.GetSha256(creds.Password)
+	user, err := storage.Find(users, func(u entities.UserEntity) bool {
+		return u.Gmail == creds.Gmail && u.Password == security.GetSha256(creds.Password)
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return user.ID, nil
 }
 
 func decodeRequestBody(request *http.Request, data interface{}) error {

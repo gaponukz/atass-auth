@@ -8,18 +8,17 @@ import (
 )
 
 type userStorage interface {
-	Create(entities.User) error
-	Delete(entities.User) error
-	GetByGmail(string) (entities.User, error)
-
-	UpdatePassword(entities.User, string) error
-	AddSubscribedRoute(entities.User, string) error
+	Create(entities.User) (entities.UserEntity, error)
+	ReadAll() ([]entities.UserEntity, error)
+	ByID(string) (entities.UserEntity, error)
+	Update(entities.UserEntity) error
+	Delete(string) error
 }
 
 type registrationService interface {
 	SendGeneratedCode(string) (string, error)
 	AddUserToTemporaryStorage(entities.GmailWithKeyPair) error
-	RegisterUserOnRightCode(entities.GmailWithKeyPair, entities.User) error
+	RegisterUserOnRightCode(entities.GmailWithKeyPair, entities.User) (string, error)
 }
 
 type resetPasswordService interface {
@@ -42,11 +41,7 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 		return
 	}
 
-	if !isCredsValid(credentials{Gmail: creds.Gmail, Password: creds.Password}, c.Storage) {
-		responseWriter.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
+	id, err := getIDifCredsValid(credentials{Gmail: creds.Gmail, Password: creds.Password}, c.Storage)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
@@ -54,7 +49,7 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 
 	token, expirationTime, err := genarateToken(
 		createTokenDTO{
-			Gmail:       creds.Gmail,
+			ID:          id,
 			RememberHim: creds.RememberHim,
 		},
 		c.Settings.JwtSecret,
@@ -104,7 +99,7 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	err = c.RegistrationService.RegisterUserOnRightCode(entities.GmailWithKeyPair{
+	id, err := c.RegistrationService.RegisterUserOnRightCode(entities.GmailWithKeyPair{
 		Gmail: dto.Gmail,
 		Key:   dto.Key,
 	}, entities.User{
@@ -121,7 +116,7 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 
 	token, expirationTime, err := genarateToken(
 		createTokenDTO{
-			Gmail: dto.Gmail,
+			ID: id,
 		},
 		c.Settings.JwtSecret,
 	)
@@ -245,7 +240,7 @@ func (c Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request 
 		return
 	}
 
-	fullUserInfo, err := c.Storage.GetByGmail(dto.Gmail)
+	fullUserInfo, err := c.Storage.ByID(dto.ID)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -286,13 +281,15 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	user, err := c.Storage.GetByGmail(dto.Gmail)
+	user, err := c.Storage.ByID(dto.ID)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = c.Storage.AddSubscribedRoute(user, routeId)
+	user.PurchasedRouteIds = append(user.PurchasedRouteIds, routeId)
+
+	err = c.Storage.Update(user)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return

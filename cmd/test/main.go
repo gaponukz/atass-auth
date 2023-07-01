@@ -14,17 +14,6 @@ import (
 
 func main() {
 	databaseFilename := "test.json"
-	// err := os.WriteFile(databaseFilename, []byte("[]"), 0644)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer func() {
-	// 	err := os.Remove(databaseFilename)
-	// 	if err != nil {
-	// 		fmt.Printf("Warning: file not removed\n")
-	// 	}
-	// }()
-
 	settings := settings.NewDotEnvSettings().Load()
 	futureUserStor := storage.NewRedisTemporaryStorage(settings.RedisAddress, 30*time.Minute, "register")
 	resetPassStor := storage.NewRedisTemporaryStorage(settings.RedisAddress, 5*time.Minute, "reset")

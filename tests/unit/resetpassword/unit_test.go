@@ -3,6 +3,7 @@ package resetpassword
 import (
 	"auth/src/entities"
 	"auth/src/resetPassword"
+	"auth/src/storage"
 	"auth/tests/unit/mocks"
 	"testing"
 )
@@ -34,7 +35,7 @@ func TestAddUserToTemporaryStorage(t *testing.T) {
 	testUser := entities.User{Gmail: "user@gmail.com"}
 	pair := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
 
-	err := sm.Create(testUser)
+	_, err := sm.Create(testUser)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +70,7 @@ func TestChangeUserPassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = sm.Create(testUser)
+	_, err = sm.Create(testUser)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +85,14 @@ func TestChangeUserPassword(t *testing.T) {
 		t.Error("after password reseting pair still in temp storage")
 	}
 
-	user, err := sm.GetByGmail(gmail)
+	users, err := sm.ReadAll()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	user, err := storage.Find(users, func(user entities.UserEntity) bool {
+		return user.Gmail == gmail
+	})
 	if err != nil {
 		t.Errorf("error getting user after reseting: %v", err)
 	}

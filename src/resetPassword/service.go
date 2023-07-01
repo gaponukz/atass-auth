@@ -2,12 +2,14 @@ package resetPassword
 
 import (
 	"auth/src/entities"
+	"auth/src/security"
+	"auth/src/storage"
 	"fmt"
 )
 
-type updatePasswordGetByGmailAbleStorage interface {
-	GetByGmail(string) (entities.User, error)
-	UpdatePassword(entities.User, string) error
+type updateAndReadAbleStorage interface {
+	ReadAll() ([]entities.UserEntity, error)
+	Update(entities.UserEntity) error
 }
 
 type gmailKeyPairStorage interface {
@@ -18,13 +20,13 @@ type gmailKeyPairStorage interface {
 
 type resetPasswordService struct {
 	temporaryStorage gmailKeyPairStorage
-	userStorage      updatePasswordGetByGmailAbleStorage
+	userStorage      updateAndReadAbleStorage
 	notify           func(gmail, key string) error
 	generateCode     func() string
 }
 
 func NewResetPasswordService(
-	userStorage updatePasswordGetByGmailAbleStorage,
+	userStorage updateAndReadAbleStorage,
 	temporaryStorage gmailKeyPairStorage,
 	notify func(gmail, key string) error,
 	generateCode func() string,
@@ -45,10 +47,17 @@ func (s resetPasswordService) NotifyUser(userGmail string) (string, error) {
 }
 
 func (s resetPasswordService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
-	_, err := s.userStorage.GetByGmail(user.Gmail)
-
+	users, err := s.userStorage.ReadAll()
 	if err != nil {
 		return err
+	}
+
+	isGmailExist := storage.IsExist(users, func(u entities.UserEntity) bool {
+		return u.Gmail == user.Gmail
+	})
+
+	if !isGmailExist {
+		return fmt.Errorf("gmail %s not found", user.Gmail)
 	}
 
 	return s.temporaryStorage.Create(user)
@@ -65,10 +74,20 @@ func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair,
 		return fmt.Errorf("could not remove user")
 	}
 
-	realUser, err := s.userStorage.GetByGmail(user.Gmail)
+	users, err := s.userStorage.ReadAll()
 	if err != nil {
 		return err
 	}
 
-	return s.userStorage.UpdatePassword(realUser, newPassword)
+	userToUpdate, err := storage.Find(users, func(u entities.UserEntity) bool {
+		return u.Gmail == user.Gmail
+	})
+
+	if err != nil {
+		return err
+	}
+
+	userToUpdate.Password = security.GetSha256(newPassword)
+
+	return s.userStorage.Update(userToUpdate)
 }

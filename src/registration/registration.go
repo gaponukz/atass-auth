@@ -2,12 +2,13 @@ package registration
 
 import (
 	"auth/src/entities"
+	"auth/src/storage"
 	"fmt"
 )
 
-type createAndGetByGmailAbleStorage interface {
-	Create(entities.User) error
-	GetByGmail(string) (entities.User, error)
+type createAndReadAbleStorage interface {
+	Create(entities.User) (entities.UserEntity, error)
+	ReadAll() ([]entities.UserEntity, error)
 }
 
 type gmailKeyPairStorage interface {
@@ -17,7 +18,7 @@ type gmailKeyPairStorage interface {
 }
 
 func NewRegistrationService(
-	userStorage createAndGetByGmailAbleStorage,
+	userStorage createAndReadAbleStorage,
 	futureUserStorage gmailKeyPairStorage,
 	notify func(gmail, key string) error,
 	generateCode func() string,
@@ -31,7 +32,7 @@ func NewRegistrationService(
 }
 
 type registrationService struct {
-	userStorage       createAndGetByGmailAbleStorage
+	userStorage       createAndReadAbleStorage
 	futureUserStorage gmailKeyPairStorage
 	notify            func(gmail, key string) error
 	generateCode      func() string
@@ -45,25 +46,37 @@ func (s registrationService) SendGeneratedCode(userGmail string) (string, error)
 }
 
 func (s registrationService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
-	mayUser, _ := s.userStorage.GetByGmail(user.Gmail)
+	users, err := s.userStorage.ReadAll()
+	if err != nil {
+		return err
+	}
 
-	if mayUser.Gmail != "" {
+	isExist := storage.IsExist(users, func(u entities.UserEntity) bool {
+		return u.Gmail == user.Gmail
+	})
+
+	if isExist {
 		return fmt.Errorf("already registered gmail")
 	}
 
 	return s.futureUserStorage.Create(user)
 }
 
-func (s registrationService) RegisterUserOnRightCode(pair entities.GmailWithKeyPair, user entities.User) error {
+func (s registrationService) RegisterUserOnRightCode(pair entities.GmailWithKeyPair, user entities.User) (string, error) {
 	_, err := s.futureUserStorage.GetByUniqueKey(pair.Key)
 	if err != nil {
-		return fmt.Errorf("user not found")
+		return "", fmt.Errorf("user not found")
 	}
 
 	err = s.futureUserStorage.Delete(pair)
 	if err != nil {
-		return fmt.Errorf("could not remove user")
+		return "", fmt.Errorf("could not remove user")
 	}
 
-	return s.userStorage.Create(user)
+	newUser, err := s.userStorage.Create(user)
+	if err != nil {
+		return "", err
+	}
+
+	return newUser.ID, nil
 }
