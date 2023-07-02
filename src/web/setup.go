@@ -1,6 +1,7 @@
 package web
 
 import (
+	"auth/src/controller"
 	"log"
 	"net/http"
 )
@@ -25,18 +26,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-type controller interface {
-	Signin(rw http.ResponseWriter, r *http.Request)
-	Signup(rw http.ResponseWriter, r *http.Request)
-	ConfirmRegistration(rw http.ResponseWriter, r *http.Request)
-	Refresh(rw http.ResponseWriter, r *http.Request)
-	Logout(rw http.ResponseWriter, r *http.Request)
-	ResetPassword(rw http.ResponseWriter, r *http.Request)
-	ConfirmResetPassword(rw http.ResponseWriter, r *http.Request)
-	GetFullUserInfo(rw http.ResponseWriter, r *http.Request)
-	SubscribeToTheRoute(rw http.ResponseWriter, r *http.Request)
-}
-
 func enableCORS(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -54,7 +43,7 @@ func enableCORS(handler http.Handler) http.Handler {
 	})
 }
 
-func getMuxFromController(c controller) *http.ServeMux {
+func getMuxFromController(c controller.Controller) *http.ServeMux {
 	httpRoute := http.NewServeMux()
 
 	httpRoute.HandleFunc("/signup", requiredMethod(c.Signup, http.MethodPost))
@@ -67,11 +56,12 @@ func getMuxFromController(c controller) *http.ServeMux {
 
 	httpRoute.HandleFunc("/getUserInfo", c.GetFullUserInfo)
 	httpRoute.HandleFunc("/subscribeUserToTheRoute", requiredMethod(c.SubscribeToTheRoute, http.MethodPost))
+	httpRoute.HandleFunc("/updateName", requiredMethod(c.ChangeUserName, http.MethodPost))
 
 	return httpRoute
 }
 
-func SetupServer(c controller) *http.Server {
+func SetupServer(c controller.Controller) *http.Server {
 	handler := getMuxFromController(c)
 
 	return &http.Server{
@@ -80,7 +70,7 @@ func SetupServer(c controller) *http.Server {
 	}
 }
 
-func SetupTestServer(c controller) *http.Server {
+func SetupTestServer(c controller.Controller) *http.Server {
 	handler := getMuxFromController(c)
 
 	return &http.Server{
