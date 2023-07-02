@@ -311,3 +311,30 @@ func (c Controller) ChangeUserName(responseWriter http.ResponseWriter, request *
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 	}
 }
+
+func (c Controller) ChangeUserPhone(responseWriter http.ResponseWriter, request *http.Request) {
+	phone, err := getOneStringFieldFromBody(request, "phone")
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	if status != http.StatusOK {
+		responseWriter.WriteHeader(int(status))
+		return
+	}
+
+	user, err := c.Storage.ByID(id)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user.Phone = phone
+
+	err = c.Storage.Update(user)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+	}
+}
