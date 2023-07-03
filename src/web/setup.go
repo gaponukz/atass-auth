@@ -58,6 +58,7 @@ func getMuxFromController(c controller.Controller) *http.ServeMux {
 	httpRoute.HandleFunc("/subscribeUserToTheRoute", requiredMethod(c.SubscribeToTheRoute, http.MethodPost))
 	httpRoute.HandleFunc("/updateName", requiredMethod(c.ChangeUserName, http.MethodPost))
 	httpRoute.HandleFunc("/updatePhone", requiredMethod(c.ChangeUserPhone, http.MethodPost))
+	httpRoute.HandleFunc("/updateAllowsAdvertisement", requiredMethod(c.ChangeUserAllowsAdvertisement, http.MethodPost))
 
 	return httpRoute
 }

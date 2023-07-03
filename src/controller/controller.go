@@ -68,7 +68,7 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 }
 
 func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Request) {
-	gmail, err := getGmailFromBody(request)
+	gmail, err := getOneStringFieldFromBody(request, "gmail")
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -179,7 +179,7 @@ func (c Controller) Logout(responseWriter http.ResponseWriter, request *http.Req
 }
 
 func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *http.Request) {
-	gmail, err := getGmailFromBody(request)
+	gmail, err := getOneStringFieldFromBody(request, "gmail")
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -247,7 +247,7 @@ func (c Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request 
 }
 
 func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, request *http.Request) {
-	routeId, err := getRouteIdFromBody(request)
+	routeId, err := getOneStringFieldFromBody(request, "routeId")
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -332,6 +332,38 @@ func (c Controller) ChangeUserPhone(responseWriter http.ResponseWriter, request 
 	}
 
 	user.Phone = phone
+
+	err = c.Storage.Update(user)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (c Controller) ChangeUserAllowsAdvertisement(responseWriter http.ResponseWriter, request *http.Request) {
+	value, err := getOneFieldFromBody(request, "allowsAdvertisement")
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	allowsAdvertisement, ok := value.(bool)
+	if !ok {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	if status != http.StatusOK {
+		responseWriter.WriteHeader(int(status))
+		return
+	}
+
+	user, err := c.Storage.ByID(id)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user.AllowsAdvertisement = allowsAdvertisement
 
 	err = c.Storage.Update(user)
 	if err != nil {
