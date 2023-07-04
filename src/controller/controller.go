@@ -286,7 +286,7 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 }
 
 func (c Controller) ChangeUserName(responseWriter http.ResponseWriter, request *http.Request) {
-	name, err := getOneStringFieldFromBody(request, "gmail")
+	name, err := getOneStringFieldFromBody(request, "fullName")
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
