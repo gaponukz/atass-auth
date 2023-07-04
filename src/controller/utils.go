@@ -83,32 +83,34 @@ func getPasswordResetDto(request *http.Request) (passwordResetDTO, error) {
 }
 
 func getOneStringFieldFromBody(request *http.Request, field string) (string, error) {
+	value, err := getOneFieldFromBody(request, field)
+	stringValue, ok := value.(string)
+	if !ok && err == nil {
+		return "", fmt.Errorf("expected type string, got %T", value)
+	}
+
+	return stringValue, err
+}
+
+func getOneFieldFromBody(request *http.Request, field string) (interface{}, error) {
 	body, err := io.ReadAll(request.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var data map[string]interface{}
 
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	value, ok := data[field].(string)
-	if !ok {
-		return "", fmt.Errorf("could not parse %s field", field)
+	value, exists := data[field]
+	if !exists {
+		return nil, fmt.Errorf("%s field not found", field)
 	}
 
 	return value, nil
-}
-
-func getGmailFromBody(request *http.Request) (string, error) {
-	return getOneStringFieldFromBody(request, "gmail")
-}
-
-func getRouteIdFromBody(request *http.Request) (string, error) {
-	return getOneStringFieldFromBody(request, "routeId")
 }
 
 func dumpsJson(data interface{}) ([]byte, error) {
@@ -118,4 +120,24 @@ func dumpsJson(data interface{}) ([]byte, error) {
 	}
 
 	return jsonData, nil
+}
+
+type statusCode int
+
+func idFromRequest(request *http.Request, secret string) (string, statusCode) {
+	tokenCookie, err := request.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return "", http.StatusUnauthorized
+		}
+
+		return "", http.StatusBadRequest
+	}
+
+	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, secret)
+	if err != nil {
+		return "", http.StatusUnauthorized
+	}
+
+	return dto.ID, http.StatusOK
 }
