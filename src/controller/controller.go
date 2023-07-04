@@ -68,7 +68,7 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 }
 
 func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Request) {
-	gmail, err := getGmailFromBody(request)
+	gmail, err := getOneStringFieldFromBody(request, "gmail")
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -179,7 +179,7 @@ func (c Controller) Logout(responseWriter http.ResponseWriter, request *http.Req
 }
 
 func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *http.Request) {
-	gmail, err := getGmailFromBody(request)
+	gmail, err := getOneStringFieldFromBody(request, "gmail")
 
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -223,24 +223,13 @@ func (c Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, req
 }
 
 func (c Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
-	tokenCookie, err := request.Cookie("token")
-
-	if err != nil {
-		if err == http.ErrNoCookie {
-			responseWriter.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		responseWriter.WriteHeader(http.StatusBadRequest)
+	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	if status != http.StatusOK {
+		responseWriter.WriteHeader(int(status))
 		return
 	}
 
-	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, c.Settings.JwtSecret)
-	if err != nil {
-		responseWriter.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	fullUserInfo, err := c.Storage.ByID(dto.ID)
+	fullUserInfo, err := c.Storage.ByID(id)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -258,7 +247,7 @@ func (c Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request 
 }
 
 func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, request *http.Request) {
-	routeId, err := getRouteIdFromBody(request)
+	routeId, err := getOneStringFieldFromBody(request, "routeId")
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -293,5 +282,91 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+}
+
+func (c Controller) ChangeUserName(responseWriter http.ResponseWriter, request *http.Request) {
+	name, err := getOneStringFieldFromBody(request, "fullName")
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	if status != http.StatusOK {
+		responseWriter.WriteHeader(int(status))
+		return
+	}
+
+	user, err := c.Storage.ByID(id)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user.FullName = name
+
+	err = c.Storage.Update(user)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (c Controller) ChangeUserPhone(responseWriter http.ResponseWriter, request *http.Request) {
+	phone, err := getOneStringFieldFromBody(request, "phone")
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	if status != http.StatusOK {
+		responseWriter.WriteHeader(int(status))
+		return
+	}
+
+	user, err := c.Storage.ByID(id)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user.Phone = phone
+
+	err = c.Storage.Update(user)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (c Controller) ChangeUserAllowsAdvertisement(responseWriter http.ResponseWriter, request *http.Request) {
+	value, err := getOneFieldFromBody(request, "allowsAdvertisement")
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	allowsAdvertisement, ok := value.(bool)
+	if !ok {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	if status != http.StatusOK {
+		responseWriter.WriteHeader(int(status))
+		return
+	}
+
+	user, err := c.Storage.ByID(id)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user.AllowsAdvertisement = allowsAdvertisement
+
+	err = c.Storage.Update(user)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
 	}
 }
