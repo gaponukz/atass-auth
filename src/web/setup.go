@@ -2,6 +2,7 @@ package web
 
 import (
 	"auth/src/controller"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -75,6 +76,7 @@ func SetupServer(c controller.Controller) *http.Server {
 func SetupTestServer(c controller.Controller) *http.Server {
 	handler := getMuxFromController(c)
 
+	fmt.Println("Warning: this is test server, please do not use it in production.")
 	return &http.Server{
 		Addr:    ":8080",
 		Handler: enableCORS(loggingMiddleware(handler)),
