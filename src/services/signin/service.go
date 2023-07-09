@@ -7,6 +7,7 @@ import (
 )
 
 type repository interface {
+	ByID(string) (entities.UserEntity, error)
 	ReadAll() ([]entities.UserEntity, error)
 }
 
@@ -33,4 +34,8 @@ func (s signinService) Login(gmail, password string) (string, error) {
 	}
 
 	return user.ID, nil
+}
+
+func (s signinService) UserProfile(id string) (entities.UserEntity, error) {
+	return s.db.ByID(id)
 }
