@@ -17,6 +17,10 @@ type signupService interface {
 	RegisterUserOnRightCode(entities.GmailWithKeyPair, entities.User) (string, error)
 }
 
+type settingsService interface {
+	Update(entities.UserEntity) error
+}
+
 type resetPasswordService interface {
 	NotifyUser(string) (string, error)
 	AddUserToTemporaryStorage(entities.GmailWithKeyPair) error
@@ -29,14 +33,18 @@ type Controller struct {
 	signinService        signinService
 	signupService        signupService
 	resetPasswordService resetPasswordService
+	settingsService      settingsService
 }
 
-func NewController(jwtSecret string, signinService signinService, signupService signupService, resetPasswordService resetPasswordService) *Controller {
+func NewController(jwtSecret string, signinService signinService, signupService signupService,
+	resetPasswordService resetPasswordService, settingsService settingsService) *Controller {
+
 	return &Controller{
 		jwtSecret:            jwtSecret,
 		signinService:        signinService,
 		signupService:        signupService,
 		resetPasswordService: resetPasswordService,
+		settingsService:      settingsService,
 	}
 }
 
@@ -192,13 +200,13 @@ func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *h
 		return
 	}
 
-	code, err := c.ResetPasswordService.NotifyUser(gmail)
+	code, err := c.resetPasswordService.NotifyUser(gmail)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = c.ResetPasswordService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
+	err = c.resetPasswordService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
 		Gmail: gmail,
 		Key:   code,
 	})
@@ -215,7 +223,7 @@ func (c Controller) CancelPasswordResetting(responseWriter http.ResponseWriter, 
 		return
 	}
 
-	err = c.ResetPasswordService.CancelPasswordResetting(
+	err = c.resetPasswordService.CancelPasswordResetting(
 		entities.GmailWithKeyPair{
 			Gmail: user.Gmail,
 			Key:   user.Key,
@@ -234,7 +242,7 @@ func (c Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, req
 		return
 	}
 
-	err = c.ResetPasswordService.ChangeUserPassword(
+	err = c.resetPasswordService.ChangeUserPassword(
 		entities.GmailWithKeyPair{
 			Gmail: user.Gmail,
 			Key:   user.Key,
@@ -295,7 +303,7 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	user, err := c.Storage.ByID(dto.ID)
+	user, err := c.signinService.UserProfile(dto.ID)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -303,7 +311,7 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 
 	user.PurchasedRouteIds = append(user.PurchasedRouteIds, routeId)
 
-	err = c.Storage.Update(user)
+	err = c.settingsService.Update(user)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -323,7 +331,7 @@ func (c Controller) ChangeUserName(responseWriter http.ResponseWriter, request *
 		return
 	}
 
-	user, err := c.Storage.ByID(id)
+	user, err := c.signinService.UserProfile(id)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -331,7 +339,7 @@ func (c Controller) ChangeUserName(responseWriter http.ResponseWriter, request *
 
 	user.FullName = name
 
-	err = c.Storage.Update(user)
+	err = c.settingsService.Update(user)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 	}
@@ -350,7 +358,7 @@ func (c Controller) ChangeUserPhone(responseWriter http.ResponseWriter, request 
 		return
 	}
 
-	user, err := c.Storage.ByID(id)
+	user, err := c.signinService.UserProfile(id)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -358,7 +366,7 @@ func (c Controller) ChangeUserPhone(responseWriter http.ResponseWriter, request 
 
 	user.Phone = phone
 
-	err = c.Storage.Update(user)
+	err = c.settingsService.Update(user)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 	}
@@ -382,7 +390,7 @@ func (c Controller) ChangeUserAllowsAdvertisement(responseWriter http.ResponseWr
 		return
 	}
 
-	user, err := c.Storage.ByID(id)
+	user, err := c.signinService.UserProfile(id)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -390,7 +398,7 @@ func (c Controller) ChangeUserAllowsAdvertisement(responseWriter http.ResponseWr
 
 	user.AllowsAdvertisement = allowsAdvertisement
 
-	err = c.Storage.Update(user)
+	err = c.settingsService.Update(user)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 	}

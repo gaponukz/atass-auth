@@ -1,4 +1,4 @@
-package registration
+package signup
 
 import (
 	"auth/src/entities"

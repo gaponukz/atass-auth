@@ -1,4 +1,4 @@
-package password_reseting
+package passreset
 
 import (
 	"auth/src/entities"
