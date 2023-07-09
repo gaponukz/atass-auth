@@ -3,7 +3,6 @@ package password_reseting
 import (
 	"auth/src/entities"
 	"auth/src/errors"
-	"auth/src/security"
 	"auth/src/storage"
 	"fmt"
 )
@@ -24,12 +23,14 @@ type resetPasswordService struct {
 	userStorage      updateAndReadAbleStorage
 	notify           func(gmail, key string) error
 	generateCode     func() string
+	hash             func(string) string
 }
 
 func NewResetPasswordService(
 	userStorage updateAndReadAbleStorage,
 	temporaryStorage gmailKeyPairStorage,
 	notify func(gmail, key string) error,
+	hash func(string) string,
 	generateCode func() string,
 ) *resetPasswordService {
 	return &resetPasswordService{
@@ -37,6 +38,7 @@ func NewResetPasswordService(
 		userStorage:      userStorage,
 		notify:           notify,
 		generateCode:     generateCode,
+		hash:             hash,
 	}
 }
 
@@ -92,7 +94,7 @@ func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair,
 		return err
 	}
 
-	userToUpdate.Password = security.GetSha256(newPassword)
+	userToUpdate.Password = s.hash(newPassword)
 
 	return s.userStorage.Update(userToUpdate)
 }

@@ -22,12 +22,14 @@ func NewRegistrationService(
 	futureUserStorage gmailKeyPairStorage,
 	notify func(gmail, key string) error,
 	generateCode func() string,
+	hash func(string) string,
 ) *registrationService {
 	return &registrationService{
 		userStorage:       userStorage,
 		futureUserStorage: futureUserStorage,
 		notify:            notify,
 		generateCode:      generateCode,
+		hash:              hash,
 	}
 }
 
@@ -36,6 +38,7 @@ type registrationService struct {
 	futureUserStorage gmailKeyPairStorage
 	notify            func(gmail, key string) error
 	generateCode      func() string
+	hash              func(string) string
 }
 
 func (s registrationService) SendGeneratedCode(userGmail string) (string, error) {
@@ -68,6 +71,7 @@ func (s registrationService) RegisterUserOnRightCode(pair entities.GmailWithKeyP
 		return "", errors.ErrRegisterRequestMissing
 	}
 
+	user.Password = s.hash(user.Password)
 	newUser, err := s.userStorage.Create(user)
 	if err != nil {
 		return "", err

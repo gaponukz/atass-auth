@@ -37,11 +37,13 @@ func main() {
 				futureUserStor,
 				func(gmail string, key string) error { return nil },
 				func() string { return "12345" },
+				func(s string) string { return s },
 			),
 			ResetPasswordService: password_reseting.NewResetPasswordService(
 				userStorage,
 				resetPassStor,
 				func(gmail string, key string) error { return nil },
+				func(s string) string { return s },
 				func() string { return "12345" },
 			),
 		},

@@ -10,6 +10,7 @@ import (
 
 type Settings struct {
 	JwtSecret     string `json:"jwtSecret"`
+	HashSecret    string `json:"hashSecret"`
 	Gmail         string `json:"gmail"`
 	GmailPassword string `json:"gmailPassword"`
 	Port          int64  `json:"port"`
@@ -47,6 +48,7 @@ func (sts dotEnvSettings) Load() Settings {
 
 	return Settings{
 		JwtSecret:     os.Getenv("jwtSecret"),
+		HashSecret:    os.Getenv("hashSecret"),
 		Gmail:         os.Getenv("gmail"),
 		GmailPassword: os.Getenv("gmailPassword"),
 		Port:          parsePort(os.Getenv("port")),

@@ -16,6 +16,7 @@ import (
 
 func main() {
 	settings := settings.NewDotEnvSettings().Load()
+	hash := security.Sha256WithSecretFactory(settings.HashSecret)
 	futureUserStor := storage.NewRedisTemporaryStorage(settings.RedisAddress, 30*time.Minute, "register")
 	resetPassStor := storage.NewRedisTemporaryStorage(settings.RedisAddress, 5*time.Minute, "reset")
 	userStorage := storage.NewUserJsonFileStorage("users.json")
@@ -35,10 +36,22 @@ func main() {
 
 	server := web.SetupServer(
 		controller.Controller{
-			Storage:              userStorage,
-			Settings:             settings,
-			RegistrationService:  registration.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, security.GenerateCode),
-			ResetPasswordService: password_reseting.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, security.GenerateCode),
+			Storage:  userStorage,
+			Settings: settings,
+			RegistrationService: registration.NewRegistrationService(
+				userStorage,
+				futureUserStor,
+				sendRegisterGmail,
+				security.GenerateCode,
+				hash,
+			),
+			ResetPasswordService: password_reseting.NewResetPasswordService(
+				userStorage,
+				resetPassStor,
+				sendResetPasswordLetter,
+				hash,
+				security.GenerateCode,
+			),
 		},
 	)
 
