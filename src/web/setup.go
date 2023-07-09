@@ -52,6 +52,7 @@ func getMuxFromController(c controller.Controller) *http.ServeMux {
 	httpRoute.HandleFunc("/signin", requiredMethod(c.Signin, http.MethodPost))
 	httpRoute.HandleFunc("/resetPassword", requiredMethod(c.ResetPassword, http.MethodPost))
 	httpRoute.HandleFunc("/confirmResetPassword", requiredMethod(c.ConfirmResetPassword, http.MethodPost))
+	httpRoute.HandleFunc("/cancelPasswordResetting", requiredMethod(c.CancelPasswordResetting, http.MethodPost))
 	httpRoute.HandleFunc("/logout", c.Logout)
 	httpRoute.HandleFunc("/refresh", c.Refresh)
 

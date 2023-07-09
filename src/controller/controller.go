@@ -24,6 +24,7 @@ type registrationService interface {
 type resetPasswordService interface {
 	NotifyUser(string) (string, error)
 	AddUserToTemporaryStorage(entities.GmailWithKeyPair) error
+	CancelPasswordResetting(entities.GmailWithKeyPair) error
 	ChangeUserPassword(entities.GmailWithKeyPair, string) error
 }
 
@@ -198,6 +199,25 @@ func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *h
 	})
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (c Controller) CancelPasswordResetting(responseWriter http.ResponseWriter, request *http.Request) {
+	user, err := getPasswordResetDto(request)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = c.ResetPasswordService.CancelPasswordResetting(
+		entities.GmailWithKeyPair{
+			Gmail: user.Gmail,
+			Key:   user.Key,
+		},
+	)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 }

@@ -6,8 +6,8 @@ import (
 
 	"auth/src/controller"
 	"auth/src/notifier"
+	"auth/src/password_reseting"
 	"auth/src/registration"
-	"auth/src/resetPassword"
 	"auth/src/security"
 	"auth/src/settings"
 	"auth/src/storage"
@@ -38,7 +38,7 @@ func main() {
 			Storage:              userStorage,
 			Settings:             settings,
 			RegistrationService:  registration.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, security.GenerateCode),
-			ResetPasswordService: resetPassword.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, security.GenerateCode),
+			ResetPasswordService: password_reseting.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, security.GenerateCode),
 		},
 	)
 

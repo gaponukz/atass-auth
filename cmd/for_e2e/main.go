@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"auth/src/controller"
+	"auth/src/password_reseting"
 	"auth/src/registration"
-	"auth/src/resetPassword"
 	"auth/src/settings"
 	"auth/src/storage"
 	"auth/src/web"
@@ -38,7 +38,7 @@ func main() {
 				func(gmail string, key string) error { return nil },
 				func() string { return "12345" },
 			),
-			ResetPasswordService: resetPassword.NewResetPasswordService(
+			ResetPasswordService: password_reseting.NewResetPasswordService(
 				userStorage,
 				resetPassStor,
 				func(gmail string, key string) error { return nil },
