@@ -2,8 +2,8 @@ package registration
 
 import (
 	"auth/src/entities"
+	"auth/src/errors"
 	"auth/src/storage"
-	"fmt"
 )
 
 type createAndReadAbleStorage interface {
@@ -56,21 +56,16 @@ func (s registrationService) AddUserToTemporaryStorage(user entities.GmailWithKe
 	})
 
 	if isExist {
-		return fmt.Errorf("already registered gmail")
+		return errors.ErrUserAlreadyExists
 	}
 
 	return s.futureUserStorage.Create(user)
 }
 
 func (s registrationService) RegisterUserOnRightCode(pair entities.GmailWithKeyPair, user entities.User) (string, error) {
-	_, err := s.futureUserStorage.GetByUniqueKey(pair.Key)
+	err := s.futureUserStorage.Delete(pair)
 	if err != nil {
-		return "", fmt.Errorf("user not found")
-	}
-
-	err = s.futureUserStorage.Delete(pair)
-	if err != nil {
-		return "", fmt.Errorf("could not remove user")
+		return "", errors.ErrRegisterRequestMissing
 	}
 
 	newUser, err := s.userStorage.Create(user)

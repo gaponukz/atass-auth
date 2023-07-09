@@ -2,6 +2,7 @@ package controller
 
 import (
 	"auth/src/entities"
+	"auth/src/errors"
 	"auth/src/security"
 	"auth/src/storage"
 	"encoding/json"
@@ -33,7 +34,7 @@ func getIDifCredsValid(creds credentials, userStorage userRepository) (string, e
 		return u.Gmail == creds.Gmail && u.Password == security.GetSha256(creds.Password)
 	})
 	if err != nil {
-		return "", err
+		return "", errors.ErrUserNotFound
 	}
 
 	return user.ID, nil
