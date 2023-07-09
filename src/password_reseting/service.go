@@ -2,6 +2,7 @@ package password_reseting
 
 import (
 	"auth/src/entities"
+	"auth/src/errors"
 	"auth/src/security"
 	"auth/src/storage"
 	"fmt"
@@ -64,28 +65,18 @@ func (s resetPasswordService) AddUserToTemporaryStorage(user entities.GmailWithK
 }
 
 func (s resetPasswordService) CancelPasswordResetting(user entities.GmailWithKeyPair) error {
-	_, err := s.temporaryStorage.GetByUniqueKey(user.Key)
+	err := s.temporaryStorage.Delete(user)
 	if err != nil {
-		return fmt.Errorf("user did not submit a password reset request: %v", err)
-	}
-
-	err = s.temporaryStorage.Delete(user)
-	if err != nil {
-		return fmt.Errorf("could not remove user: %v", err)
+		return errors.ErrRegisterRequestMissing
 	}
 
 	return nil
 }
 
 func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair, newPassword string) error {
-	_, err := s.temporaryStorage.GetByUniqueKey(user.Key)
+	err := s.temporaryStorage.Delete(user)
 	if err != nil {
-		return fmt.Errorf("user not found")
-	}
-
-	err = s.temporaryStorage.Delete(user)
-	if err != nil {
-		return fmt.Errorf("could not remove user")
+		return errors.ErrRegisterRequestMissing
 	}
 
 	users, err := s.userStorage.ReadAll()
