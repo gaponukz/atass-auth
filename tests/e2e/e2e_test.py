@@ -104,35 +104,14 @@ class TestAPI:
         assert response.status_code == 200
         assert session.cookies.get("token") is not None
 
-    def test_change_name(self, session: requests.Session):
+    def test_change_user_info(self, session: requests.Session):
         user.full_name = "Max Euq"
-        response = session.post(f'{api_url}/updateName', json={
-            "fullName": user.full_name
-        })
-
-        assert response.status_code == 200
-
-        response = session.get(f'{api_url}/getUserInfo')
-        data = response.json()
-
-        assert data['fullName'] == user.full_name
-    
-    def test_change_phone(self, session: requests.Session):
-        user.phone = "3801234567"
-        response = session.post(f'{api_url}/updatePhone', json={
-            "phone": user.phone
-        })
-
-        assert response.status_code == 200
-
-        response = session.get(f'{api_url}/getUserInfo')
-        data = response.json()
-
-        assert data['phone'] == user.phone
-    
-    def test_change_allows_advertisement(self, session: requests.Session):
+        user.phone = "38001101010"
         user.allows_advertisement = not user.allows_advertisement
-        response = session.post(f'{api_url}/updateAllowsAdvertisement', json={
+
+        response = session.post(f'{api_url}/updateUserInfo', json={
+            "fullName": user.full_name,
+            "phone": user.phone,
             "allowsAdvertisement": user.allows_advertisement
         })
 
@@ -141,4 +120,6 @@ class TestAPI:
         response = session.get(f'{api_url}/getUserInfo')
         data = response.json()
 
+        assert data['fullName'] == user.full_name
+        assert data['phone'] == user.phone
         assert data['allowsAdvertisement'] == user.allows_advertisement
