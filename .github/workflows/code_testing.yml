@@ -6,9 +6,22 @@ on:
       - main
 
 jobs:
-  test:
+  architecture:
     name: Run tests
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          cache: false
+      - name: Run architecture tests
+        run: go test ./tests/architecture
+
+  unit-tests:
+    name: Run tests
+    runs-on: ubuntu-latest
+    needs: [architecture]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -19,10 +32,15 @@ jobs:
         run: go test ./tests/unit/registration
       - name: Run unit tests for password resetting
         run: go test ./tests/unit/resetpassword
+      - name: Run unit tests for sign in
+        run: go test ./tests/unit/signin
+      - name: Run unit tests for user settings
+        run: go test ./tests/unit/settings
 
   golangci:
     name: golangci-lint
     runs-on: ubuntu-latest
+    needs: [architecture]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -37,6 +55,7 @@ jobs:
   e2e:
     name: Run end-to-end tests
     runs-on: ubuntu-latest
+    needs: [architecture, unit-tests]
     services:
       redis:
         image: redis/redis-stack-server:latest
@@ -67,7 +86,7 @@ jobs:
   docker:
     name: Publishes to Docker Hub
     runs-on: ubuntu-latest
-    needs: [test, e2e]
+    needs: [e2e]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
