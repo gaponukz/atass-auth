@@ -327,7 +327,7 @@ func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *
 	}
 
 	user.FullName = dto.FullName
-	user.Phone = dto.FullName
+	user.Phone = dto.Phone
 	user.AllowsAdvertisement = dto.AllowsAdvertisement
 
 	err = c.settingsService.Update(user)
