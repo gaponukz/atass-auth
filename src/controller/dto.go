@@ -29,3 +29,9 @@ type passwordResetDTO struct {
 	Password string `json:"password"`
 	Key      string `json:"key"`
 }
+
+type updateUserDTO struct {
+	FullName            string `json:"fullName"`
+	Phone               string `json:"phone"`
+	AllowsAdvertisement bool   `json:"allowsAdvertisement"`
+}

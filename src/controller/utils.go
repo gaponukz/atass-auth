@@ -59,6 +59,17 @@ func getPasswordResetDto(request *http.Request) (passwordResetDTO, error) {
 	return creds, nil
 }
 
+func getUpdateUserDTO(request *http.Request) (updateUserDTO, error) {
+	var dto updateUserDTO
+
+	err := decodeRequestBody(request, &dto)
+	if err != nil {
+		return updateUserDTO{}, err
+	}
+
+	return dto, nil
+}
+
 func getOneStringFieldFromBody(request *http.Request, field string) (string, error) {
 	value, err := getOneFieldFromBody(request, field)
 	stringValue, ok := value.(string)
