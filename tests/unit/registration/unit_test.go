@@ -2,7 +2,7 @@ package registration
 
 import (
 	"auth/src/entities"
-	"auth/src/registration"
+	"auth/src/services/signup"
 	"auth/src/storage"
 	"auth/tests/unit/mocks"
 	"testing"
@@ -11,11 +11,10 @@ import (
 func TestSendGeneratedCode(t *testing.T) {
 	const expectedCode = "12345"
 
-	s := registration.NewRegistrationService(nil, nil, func(gmail string, key string) error {
-		return nil
-	}, func() string {
-		return expectedCode
-	})
+	notify := func(gmail string, key string) error { return nil }
+	generateCode := func() string { return expectedCode }
+	hash := func(s string) string { return s }
+	s := signup.NewRegistrationService(nil, nil, notify, generateCode, hash)
 
 	code, err := s.SendGeneratedCode("user@gmail.com")
 	if err != nil {
@@ -30,7 +29,7 @@ func TestSendGeneratedCode(t *testing.T) {
 func TestAddUserToTemporaryStorage(t *testing.T) {
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
-	s := registration.NewRegistrationService(sm, tsm, nil, nil)
+	s := signup.NewRegistrationService(sm, tsm, nil, nil, nil)
 	testUser := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
 
 	err := s.AddUserToTemporaryStorage(testUser)
@@ -51,7 +50,7 @@ func TestAddUserToTemporaryStorage(t *testing.T) {
 func TestAddAlreadyRegisteredUserToTemporaryStorage(t *testing.T) {
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
-	s := registration.NewRegistrationService(sm, tsm, nil, nil)
+	s := signup.NewRegistrationService(sm, tsm, nil, nil, nil)
 	testUser := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
 
 	_, err := sm.Create(entities.User{Gmail: "user@gmail.com"})
@@ -66,9 +65,13 @@ func TestAddAlreadyRegisteredUserToTemporaryStorage(t *testing.T) {
 }
 
 func TestRegisterUserOnRightCode(t *testing.T) {
+	const expectedCode = "12345"
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
-	s := registration.NewRegistrationService(sm, tsm, nil, func() string { return "12345" })
+	generateCode := func() string { return expectedCode }
+	hash := func(s string) string { return s }
+
+	s := signup.NewRegistrationService(sm, tsm, nil, generateCode, hash)
 
 	const testGmail = "test@gmail.com"
 	pair := entities.GmailWithKeyPair{Gmail: testGmail, Key: "12345"}

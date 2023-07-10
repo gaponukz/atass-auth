@@ -1,8 +1,8 @@
-package resetPassword
+package passreset
 
 import (
 	"auth/src/entities"
-	"auth/src/security"
+	"auth/src/errors"
 	"auth/src/storage"
 	"fmt"
 )
@@ -23,12 +23,14 @@ type resetPasswordService struct {
 	userStorage      updateAndReadAbleStorage
 	notify           func(gmail, key string) error
 	generateCode     func() string
+	hash             func(string) string
 }
 
 func NewResetPasswordService(
 	userStorage updateAndReadAbleStorage,
 	temporaryStorage gmailKeyPairStorage,
 	notify func(gmail, key string) error,
+	hash func(string) string,
 	generateCode func() string,
 ) *resetPasswordService {
 	return &resetPasswordService{
@@ -36,6 +38,7 @@ func NewResetPasswordService(
 		userStorage:      userStorage,
 		notify:           notify,
 		generateCode:     generateCode,
+		hash:             hash,
 	}
 }
 
@@ -63,15 +66,19 @@ func (s resetPasswordService) AddUserToTemporaryStorage(user entities.GmailWithK
 	return s.temporaryStorage.Create(user)
 }
 
-func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair, newPassword string) error {
-	_, err := s.temporaryStorage.GetByUniqueKey(user.Key)
+func (s resetPasswordService) CancelPasswordResetting(user entities.GmailWithKeyPair) error {
+	err := s.temporaryStorage.Delete(user)
 	if err != nil {
-		return fmt.Errorf("user not found")
+		return errors.ErrRegisterRequestMissing
 	}
 
-	err = s.temporaryStorage.Delete(user)
+	return nil
+}
+
+func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair, newPassword string) error {
+	err := s.temporaryStorage.Delete(user)
 	if err != nil {
-		return fmt.Errorf("could not remove user")
+		return errors.ErrRegisterRequestMissing
 	}
 
 	users, err := s.userStorage.ReadAll()
@@ -87,7 +94,7 @@ func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair,
 		return err
 	}
 
-	userToUpdate.Password = security.GetSha256(newPassword)
+	userToUpdate.Password = s.hash(newPassword)
 
 	return s.userStorage.Update(userToUpdate)
 }

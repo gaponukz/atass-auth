@@ -2,6 +2,7 @@ package web
 
 import (
 	"auth/src/controller"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -43,7 +44,7 @@ func enableCORS(handler http.Handler) http.Handler {
 	})
 }
 
-func getMuxFromController(c controller.Controller) *http.ServeMux {
+func getMuxFromController(c *controller.Controller) *http.ServeMux {
 	httpRoute := http.NewServeMux()
 
 	httpRoute.HandleFunc("/signup", requiredMethod(c.Signup, http.MethodPost))
@@ -51,6 +52,7 @@ func getMuxFromController(c controller.Controller) *http.ServeMux {
 	httpRoute.HandleFunc("/signin", requiredMethod(c.Signin, http.MethodPost))
 	httpRoute.HandleFunc("/resetPassword", requiredMethod(c.ResetPassword, http.MethodPost))
 	httpRoute.HandleFunc("/confirmResetPassword", requiredMethod(c.ConfirmResetPassword, http.MethodPost))
+	httpRoute.HandleFunc("/cancelPasswordResetting", requiredMethod(c.CancelPasswordResetting, http.MethodPost))
 	httpRoute.HandleFunc("/logout", c.Logout)
 	httpRoute.HandleFunc("/refresh", c.Refresh)
 
@@ -63,7 +65,7 @@ func getMuxFromController(c controller.Controller) *http.ServeMux {
 	return httpRoute
 }
 
-func SetupServer(c controller.Controller) *http.Server {
+func SetupServer(c *controller.Controller) *http.Server {
 	handler := getMuxFromController(c)
 
 	return &http.Server{
@@ -72,9 +74,10 @@ func SetupServer(c controller.Controller) *http.Server {
 	}
 }
 
-func SetupTestServer(c controller.Controller) *http.Server {
+func SetupTestServer(c *controller.Controller) *http.Server {
 	handler := getMuxFromController(c)
 
+	fmt.Println("Warning: this is test server, please do not use it in production.")
 	return &http.Server{
 		Addr:    ":8080",
 		Handler: enableCORS(loggingMiddleware(handler)),

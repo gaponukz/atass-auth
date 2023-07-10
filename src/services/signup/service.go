@@ -1,9 +1,9 @@
-package registration
+package signup
 
 import (
 	"auth/src/entities"
+	"auth/src/errors"
 	"auth/src/storage"
-	"fmt"
 )
 
 type createAndReadAbleStorage interface {
@@ -22,12 +22,14 @@ func NewRegistrationService(
 	futureUserStorage gmailKeyPairStorage,
 	notify func(gmail, key string) error,
 	generateCode func() string,
+	hash func(string) string,
 ) *registrationService {
 	return &registrationService{
 		userStorage:       userStorage,
 		futureUserStorage: futureUserStorage,
 		notify:            notify,
 		generateCode:      generateCode,
+		hash:              hash,
 	}
 }
 
@@ -36,6 +38,7 @@ type registrationService struct {
 	futureUserStorage gmailKeyPairStorage
 	notify            func(gmail, key string) error
 	generateCode      func() string
+	hash              func(string) string
 }
 
 func (s registrationService) SendGeneratedCode(userGmail string) (string, error) {
@@ -56,23 +59,19 @@ func (s registrationService) AddUserToTemporaryStorage(user entities.GmailWithKe
 	})
 
 	if isExist {
-		return fmt.Errorf("already registered gmail")
+		return errors.ErrUserAlreadyExists
 	}
 
 	return s.futureUserStorage.Create(user)
 }
 
 func (s registrationService) RegisterUserOnRightCode(pair entities.GmailWithKeyPair, user entities.User) (string, error) {
-	_, err := s.futureUserStorage.GetByUniqueKey(pair.Key)
+	err := s.futureUserStorage.Delete(pair)
 	if err != nil {
-		return "", fmt.Errorf("user not found")
+		return "", errors.ErrRegisterRequestMissing
 	}
 
-	err = s.futureUserStorage.Delete(pair)
-	if err != nil {
-		return "", fmt.Errorf("could not remove user")
-	}
-
+	user.Password = s.hash(user.Password)
 	newUser, err := s.userStorage.Create(user)
 	if err != nil {
 		return "", err

@@ -2,7 +2,6 @@ package storage
 
 import (
 	"auth/src/entities"
-	"auth/src/security"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -24,7 +23,6 @@ func (s userJsonFileStorage) Create(user entities.User) (entities.UserEntity, er
 		return entities.UserEntity{}, err
 	}
 
-	user.Password = security.GetSha256(user.Password)
 	userEntity := entities.UserEntity{ID: uuid.New().String(), User: user}
 	users = append(users, userEntity)
 	err = s.writeUsersToFile(users)

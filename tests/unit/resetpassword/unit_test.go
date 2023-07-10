@@ -2,8 +2,7 @@ package resetpassword
 
 import (
 	"auth/src/entities"
-	"auth/src/resetPassword"
-	"auth/src/security"
+	"auth/src/services/passreset"
 	"auth/src/storage"
 	"auth/tests/unit/mocks"
 	"testing"
@@ -12,11 +11,11 @@ import (
 func TestNotifyUser(t *testing.T) {
 	const expectedCode = "12345"
 
-	s := resetPassword.NewResetPasswordService(nil, nil, func(gmail string, key string) error {
-		return nil
-	}, func() string {
-		return expectedCode
-	})
+	notify := func(gmail string, key string) error { return nil }
+	sendCode := func() string { return expectedCode }
+	hash := func(s string) string { return s }
+
+	s := passreset.NewResetPasswordService(nil, nil, notify, hash, sendCode)
 
 	code, err := s.NotifyUser("user@gmail.com")
 	if err != nil {
@@ -31,7 +30,7 @@ func TestNotifyUser(t *testing.T) {
 func TestAddUserToTemporaryStorage(t *testing.T) {
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
-	s := resetPassword.NewResetPasswordService(sm, tsm, nil, nil)
+	s := passreset.NewResetPasswordService(sm, tsm, nil, nil, nil)
 
 	testUser := entities.User{Gmail: "user@gmail.com"}
 	pair := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
@@ -56,6 +55,37 @@ func TestAddUserToTemporaryStorage(t *testing.T) {
 	}
 }
 
+func TestCancelPasswordResetting(t *testing.T) {
+	const gmail = "test@gmain.com"
+	const key = "12345"
+	testPair := entities.GmailWithKeyPair{Gmail: gmail, Key: key}
+	testUser := entities.User{Gmail: gmail, Password: "old"}
+
+	sm := mocks.NewMockStorage()
+	tsm := mocks.NewTemporaryStorageMock()
+	s := passreset.NewResetPasswordService(sm, tsm, nil, nil, nil)
+
+	err := tsm.Create(testPair)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = sm.Create(testUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = s.CancelPasswordResetting(testPair)
+	if err != nil {
+		t.Errorf("error changing password: %v", err)
+	}
+
+	_, err = tsm.GetByUniqueKey(key)
+	if err == nil {
+		t.Error("after cancel password reseting pair still in temp storage")
+	}
+}
+
 func TestChangeUserPassword(t *testing.T) {
 	const gmail = "test@gmain.com"
 	const key = "12345"
@@ -64,7 +94,8 @@ func TestChangeUserPassword(t *testing.T) {
 
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
-	s := resetPassword.NewResetPasswordService(sm, tsm, nil, nil)
+	hash := func(s string) string { return s }
+	s := passreset.NewResetPasswordService(sm, tsm, nil, hash, nil)
 
 	err := tsm.Create(testPair)
 	if err != nil {
@@ -98,7 +129,7 @@ func TestChangeUserPassword(t *testing.T) {
 		t.Errorf("error getting user after reseting: %v", err)
 	}
 
-	if user.Password != security.GetSha256("new") {
+	if user.Password != hash("new") {
 		t.Error("password not correct after changing")
 	}
 }

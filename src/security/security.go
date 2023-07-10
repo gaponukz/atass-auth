@@ -11,7 +11,9 @@ func GenerateCode() string {
 	return strconv.Itoa(rand.Intn(900000) + 100000)
 }
 
-func GetSha256(input string) string {
-	hash := sha256.Sum256([]byte(input))
-	return hex.EncodeToString(hash[:])
+func Sha256WithSecretFactory(secret string) func(string) string {
+	return func(input string) string {
+		hash := sha256.Sum256([]byte(input + secret))
+		return hex.EncodeToString(hash[:])
+	}
 }

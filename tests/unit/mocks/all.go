@@ -63,6 +63,16 @@ func (m *mockStorage) Update(userToUpdate entities.UserEntity) error {
 	return fmt.Errorf("user %s not found", userToUpdate.ID)
 }
 
+func (m *mockStorage) ByID(id string) (entities.UserEntity, error) {
+	for _, user := range m.users {
+		if user.ID == id {
+			return user, nil
+		}
+	}
+
+	return entities.UserEntity{}, errors.New("not found")
+}
+
 func NewMockStorage() *mockStorage {
 	return &mockStorage{}
 }
