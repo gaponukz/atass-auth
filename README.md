@@ -134,6 +134,24 @@ This document provides an overview of the API endpoints and request bodies for t
     "purchasedRouteIds": null
 }
 ```
+### Update user data.
+- URL: `/updateUserInfo`
+- Method: `POST`
+- Description: Updating some user fields.
+- Request Body:
+```json
+{
+    "fullName": "Ola Hoq",
+    "phone": "3800100110",
+    "allowsAdvertisement": false
+}
+```
+- Response:
+
+| Code | Description |
+| :--- | :--- |
+| `400` | Request Body is not correct |
+| `500` | something went wrong, try signin |
 
 ### Add route.
 - URL: `/subscribeUserToTheRoute`
