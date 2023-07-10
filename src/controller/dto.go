@@ -1,10 +1,5 @@
 package controller
 
-type credentials struct {
-	Gmail    string `json:"gmail"`
-	Password string `json:"password"`
-}
-
 type userInfoDTO struct {
 	ID string `json:"id"`
 }

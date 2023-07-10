@@ -3,7 +3,7 @@ package registration
 import (
 	"auth/src/entities"
 	"auth/src/services/signup"
-	"auth/src/storage"
+	"auth/src/utils"
 	"auth/tests/unit/mocks"
 	"testing"
 )
@@ -97,7 +97,7 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	u, err := storage.Find(users, func(user entities.UserEntity) bool {
+	u, err := utils.Find(users, func(user entities.UserEntity) bool {
 		return user.Gmail == testGmail
 	})
 	if err != nil {

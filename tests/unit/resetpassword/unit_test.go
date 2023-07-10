@@ -3,7 +3,7 @@ package resetpassword
 import (
 	"auth/src/entities"
 	"auth/src/services/passreset"
-	"auth/src/storage"
+	"auth/src/utils"
 	"auth/tests/unit/mocks"
 	"testing"
 )
@@ -122,7 +122,7 @@ func TestChangeUserPassword(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	user, err := storage.Find(users, func(user entities.UserEntity) bool {
+	user, err := utils.Find(users, func(user entities.UserEntity) bool {
 		return user.Gmail == gmail
 	})
 	if err != nil {
