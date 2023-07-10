@@ -286,24 +286,13 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	tokenCookie, err := request.Cookie("token")
-
-	if err != nil {
-		if err == http.ErrNoCookie {
-			responseWriter.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		responseWriter.WriteHeader(http.StatusBadRequest)
+	id, status := idFromRequest(request, c.jwtSecret)
+	if status != http.StatusOK {
+		responseWriter.WriteHeader(int(status))
 		return
 	}
 
-	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, c.jwtSecret)
-	if err != nil {
-		responseWriter.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	user, err := c.signinService.UserProfile(dto.ID)
+	user, err := c.signinService.UserProfile(id)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
