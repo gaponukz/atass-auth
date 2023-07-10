@@ -2,20 +2,16 @@ package controller
 
 import (
 	"auth/src/entities"
-	"auth/src/settings"
 	"net/http"
 	"time"
 )
 
-type userStorage interface {
-	Create(entities.User) (entities.UserEntity, error)
-	ReadAll() ([]entities.UserEntity, error)
-	ByID(string) (entities.UserEntity, error)
-	Update(entities.UserEntity) error
-	Delete(string) error
+type signinService interface {
+	Login(string, string) (string, error)
+	UserProfile(string) (entities.UserEntity, error)
 }
 
-type registrationService interface {
+type signupService interface {
 	SendGeneratedCode(string) (string, error)
 	AddUserToTemporaryStorage(entities.GmailWithKeyPair) error
 	RegisterUserOnRightCode(entities.GmailWithKeyPair, entities.User) (string, error)
@@ -29,10 +25,19 @@ type resetPasswordService interface {
 }
 
 type Controller struct {
-	Storage              userStorage
-	Settings             settings.Settings
-	RegistrationService  registrationService
-	ResetPasswordService resetPasswordService
+	jwtSecret            string
+	signinService        signinService
+	signupService        signupService
+	resetPasswordService resetPasswordService
+}
+
+func NewController(jwtSecret string, signinService signinService, signupService signupService, resetPasswordService resetPasswordService) *Controller {
+	return &Controller{
+		jwtSecret:            jwtSecret,
+		signinService:        signinService,
+		signupService:        signupService,
+		resetPasswordService: resetPasswordService,
+	}
 }
 
 func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Request) {
@@ -42,7 +47,7 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 		return
 	}
 
-	id, err := getIDifCredsValid(credentials{Gmail: creds.Gmail, Password: creds.Password}, c.Storage)
+	id, err := c.signinService.Login(creds.Gmail, creds.Password)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
@@ -53,7 +58,7 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 			ID:          id,
 			RememberHim: creds.RememberHim,
 		},
-		c.Settings.JwtSecret,
+		c.jwtSecret,
 	)
 
 	if err != nil {
@@ -76,13 +81,13 @@ func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Req
 		return
 	}
 
-	key, err := c.RegistrationService.SendGeneratedCode(gmail)
+	key, err := c.signupService.SendGeneratedCode(gmail)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = c.RegistrationService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
+	err = c.signupService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
 		Gmail: gmail,
 		Key:   key,
 	})
@@ -100,7 +105,7 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	id, err := c.RegistrationService.RegisterUserOnRightCode(entities.GmailWithKeyPair{
+	id, err := c.signupService.RegisterUserOnRightCode(entities.GmailWithKeyPair{
 		Gmail: dto.Gmail,
 		Key:   dto.Key,
 	}, entities.User{
@@ -119,7 +124,7 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 		createTokenDTO{
 			ID: id,
 		},
-		c.Settings.JwtSecret,
+		c.jwtSecret,
 	)
 
 	if err != nil {
@@ -146,7 +151,7 @@ func (c Controller) Refresh(responseWriter http.ResponseWriter, request *http.Re
 		return
 	}
 
-	claims, tokenErr := getClaimsFromToken(tokenCookie.Value, c.Settings.JwtSecret)
+	claims, tokenErr := getClaimsFromToken(tokenCookie.Value, c.jwtSecret)
 
 	if tokenErr != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -158,7 +163,7 @@ func (c Controller) Refresh(responseWriter http.ResponseWriter, request *http.Re
 		return
 	}
 
-	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(claims, c.Settings.JwtSecret)
+	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(claims, c.jwtSecret)
 
 	if newTokernErr != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
@@ -243,13 +248,13 @@ func (c Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, req
 }
 
 func (c Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
-	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	id, status := idFromRequest(request, c.jwtSecret)
 	if status != http.StatusOK {
 		responseWriter.WriteHeader(int(status))
 		return
 	}
 
-	fullUserInfo, err := c.Storage.ByID(id)
+	fullUserInfo, err := c.signinService.UserProfile(id)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -284,7 +289,7 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, c.Settings.JwtSecret)
+	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, c.jwtSecret)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
@@ -312,7 +317,7 @@ func (c Controller) ChangeUserName(responseWriter http.ResponseWriter, request *
 		return
 	}
 
-	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	id, status := idFromRequest(request, c.jwtSecret)
 	if status != http.StatusOK {
 		responseWriter.WriteHeader(int(status))
 		return
@@ -339,7 +344,7 @@ func (c Controller) ChangeUserPhone(responseWriter http.ResponseWriter, request 
 		return
 	}
 
-	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	id, status := idFromRequest(request, c.jwtSecret)
 	if status != http.StatusOK {
 		responseWriter.WriteHeader(int(status))
 		return
@@ -371,7 +376,7 @@ func (c Controller) ChangeUserAllowsAdvertisement(responseWriter http.ResponseWr
 		return
 	}
 
-	id, status := idFromRequest(request, c.Settings.JwtSecret)
+	id, status := idFromRequest(request, c.jwtSecret)
 	if status != http.StatusOK {
 		responseWriter.WriteHeader(int(status))
 		return
