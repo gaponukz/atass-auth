@@ -3,7 +3,7 @@ package passreset
 import (
 	"auth/src/entities"
 	"auth/src/errors"
-	"auth/src/storage"
+	"auth/src/utils"
 	"fmt"
 )
 
@@ -55,7 +55,7 @@ func (s resetPasswordService) AddUserToTemporaryStorage(user entities.GmailWithK
 		return err
 	}
 
-	isGmailExist := storage.IsExist(users, func(u entities.UserEntity) bool {
+	isGmailExist := utils.IsExist(users, func(u entities.UserEntity) bool {
 		return u.Gmail == user.Gmail
 	})
 
@@ -86,7 +86,7 @@ func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair,
 		return err
 	}
 
-	userToUpdate, err := storage.Find(users, func(u entities.UserEntity) bool {
+	userToUpdate, err := utils.Find(users, func(u entities.UserEntity) bool {
 		return u.Gmail == user.Gmail
 	})
 

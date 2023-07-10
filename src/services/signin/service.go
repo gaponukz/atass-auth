@@ -3,7 +3,7 @@ package signin
 import (
 	"auth/src/entities"
 	"auth/src/errors"
-	"auth/src/storage"
+	"auth/src/utils"
 )
 
 type repository interface {
@@ -26,7 +26,7 @@ func (s signinService) Login(gmail, password string) (string, error) {
 		return "", err
 	}
 
-	user, err := storage.Find(users, func(u entities.UserEntity) bool {
+	user, err := utils.Find(users, func(u entities.UserEntity) bool {
 		return u.Gmail == gmail && u.Password == s.hash(password)
 	})
 	if err != nil {

@@ -3,7 +3,7 @@ package signup
 import (
 	"auth/src/entities"
 	"auth/src/errors"
-	"auth/src/storage"
+	"auth/src/utils"
 )
 
 type createAndReadAbleStorage interface {
@@ -54,7 +54,7 @@ func (s registrationService) AddUserToTemporaryStorage(user entities.GmailWithKe
 		return err
 	}
 
-	isExist := storage.IsExist(users, func(u entities.UserEntity) bool {
+	isExist := utils.IsExist(users, func(u entities.UserEntity) bool {
 		return u.Gmail == user.Gmail
 	})
 

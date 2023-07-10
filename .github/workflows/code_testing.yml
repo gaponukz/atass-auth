@@ -58,9 +58,9 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install dependencies
-        run: pip install -r tests/requirements.txt
+        run: pip install -r tests/e2e/requirements.txt
       - name: Wait for Go app to start
-        run: sleep 5
+        run: sleep 2
       - name: Run end-to-end tests
         run: pytest tests/e2e/e2e_test.py
               
