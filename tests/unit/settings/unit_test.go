@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"auth/src/dto"
 	"auth/src/entities"
 	"auth/src/services/settings"
 	"auth/tests/unit/mocks"
@@ -16,11 +17,7 @@ func TestUpdate(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	err = service.UpdateWithFields(user.ID, struct {
-		FullName            string
-		Phone               string
-		AllowsAdvertisement bool
-	}{
+	err = service.UpdateWithFields(user.ID, dto.UpdateUserDTO{
 		FullName:            "Test2",
 		Phone:               "12345",
 		AllowsAdvertisement: true,

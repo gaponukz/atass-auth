@@ -1,25 +1,26 @@
 package mocks
 
 import (
+	"auth/src/dto"
 	"auth/src/entities"
 	"errors"
 	"fmt"
 )
 
 type temporaryStorageMock struct {
-	users []entities.GmailWithKeyPair
+	users []dto.GmailWithKeyPairDTO
 }
 
 func NewTemporaryStorageMock() *temporaryStorageMock {
 	return &temporaryStorageMock{}
 }
 
-func (m *temporaryStorageMock) Create(pair entities.GmailWithKeyPair) error {
+func (m *temporaryStorageMock) Create(pair dto.GmailWithKeyPairDTO) error {
 	m.users = append(m.users, pair)
 	return nil
 }
 
-func (m *temporaryStorageMock) Delete(pair entities.GmailWithKeyPair) error {
+func (m *temporaryStorageMock) Delete(pair dto.GmailWithKeyPairDTO) error {
 	for i, user := range m.users {
 		if user.Gmail == pair.Gmail && user.Key == pair.Key {
 			m.users = append(m.users[:i], m.users[i+1:]...)
@@ -29,13 +30,13 @@ func (m *temporaryStorageMock) Delete(pair entities.GmailWithKeyPair) error {
 	return errors.New("pair not found")
 }
 
-func (m *temporaryStorageMock) GetByUniqueKey(key string) (entities.GmailWithKeyPair, error) {
+func (m *temporaryStorageMock) GetByUniqueKey(key string) (dto.GmailWithKeyPairDTO, error) {
 	for _, user := range m.users {
 		if user.Key == key {
 			return user, nil
 		}
 	}
-	return entities.GmailWithKeyPair{}, errors.New("pair not found")
+	return dto.GmailWithKeyPairDTO{}, errors.New("pair not found")
 }
 
 type mockStorage struct {
