@@ -112,20 +112,20 @@ func dumpsJson(data interface{}) ([]byte, error) {
 
 type statusCode int
 
-func idFromRequest(request *http.Request, secret string) (string, statusCode) {
+func userInfoFromRequest(request *http.Request, secret string) (userInfoDTO, statusCode) {
 	tokenCookie, err := request.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			return "", http.StatusUnauthorized
+			return userInfoDTO{}, http.StatusUnauthorized
 		}
 
-		return "", http.StatusBadRequest
+		return userInfoDTO{}, http.StatusBadRequest
 	}
 
 	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, secret)
 	if err != nil {
-		return "", http.StatusUnauthorized
+		return userInfoDTO{}, http.StatusUnauthorized
 	}
 
-	return dto.ID, http.StatusOK
+	return dto, http.StatusOK
 }

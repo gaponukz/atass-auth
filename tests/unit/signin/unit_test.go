@@ -18,17 +18,17 @@ func TestLogin(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	id, err := service.Login("test@user.ua", "12345")
+	u, err := service.Login("test@user.ua", "12345")
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if user.ID != id {
-		t.Errorf("expected %s got %s", id, user.ID)
+	if user.ID != u.ID {
+		t.Errorf("expected %s got %s", u.ID, user.ID)
 	}
 
-	if user.FullName != "Sometest" {
-		t.Errorf("expected Sometest got %s", user.FullName)
+	if user.FullName != u.FullName {
+		t.Errorf("expected %s got %s", user.FullName, u.FullName)
 	}
 }
 

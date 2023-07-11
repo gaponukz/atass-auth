@@ -16,8 +16,15 @@ func TestUpdate(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	user.FullName = "Test2"
-	err = service.Update(user)
+	err = service.UpdateWithFields(user.ID, struct {
+		FullName            string
+		Phone               string
+		AllowsAdvertisement bool
+	}{
+		FullName:            "Test2",
+		Phone:               "12345",
+		AllowsAdvertisement: true,
+	})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -27,7 +34,15 @@ func TestUpdate(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if u.FullName != user.FullName {
-		t.Errorf("expected %s got %s", user.FullName, u.FullName)
+	if u.FullName != "Test2" {
+		t.Errorf("expected Test2 got %s", u.FullName)
+	}
+
+	if u.Phone != "12345" {
+		t.Errorf("expected 12345 got %s", u.Phone)
+	}
+
+	if u.AllowsAdvertisement != true {
+		t.Errorf("expected true got %t", u.AllowsAdvertisement)
 	}
 }

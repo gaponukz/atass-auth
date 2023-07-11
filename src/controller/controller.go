@@ -7,7 +7,7 @@ import (
 )
 
 type signinService interface {
-	Login(string, string) (string, error)
+	Login(string, string) (entities.UserEntity, error)
 	UserProfile(string) (entities.UserEntity, error)
 }
 
@@ -18,7 +18,8 @@ type signupService interface {
 }
 
 type settingsService interface {
-	Update(entities.UserEntity) error
+	UpdateWithFields(string, interface{}) error
+	SubscribeUserToRoutes(string, string) error
 }
 
 type resetPasswordService interface {
@@ -55,7 +56,7 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 		return
 	}
 
-	id, err := c.signinService.Login(creds.Gmail, creds.Password)
+	user, err := c.signinService.Login(creds.Gmail, creds.Password)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
@@ -63,8 +64,14 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 
 	token, expirationTime, err := genarateToken(
 		createTokenDTO{
-			ID:          id,
 			RememberHim: creds.RememberHim,
+			userInfoDTO: userInfoDTO{
+				ID:                  user.ID,
+				Gmail:               user.Gmail,
+				FullName:            user.FullName,
+				Phone:               user.Phone,
+				AllowsAdvertisement: user.AllowsAdvertisement,
+			},
 		},
 		c.jwtSecret,
 	)
@@ -130,7 +137,13 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 
 	token, expirationTime, err := genarateToken(
 		createTokenDTO{
-			ID: id,
+			userInfoDTO: userInfoDTO{
+				ID:                  id,
+				Gmail:               dto.Gmail,
+				Phone:               dto.Phone,
+				FullName:            dto.FullName,
+				AllowsAdvertisement: dto.AllowsAdvertisement,
+			},
 		},
 		c.jwtSecret,
 	)
@@ -160,7 +173,6 @@ func (c Controller) Refresh(responseWriter http.ResponseWriter, request *http.Re
 	}
 
 	claims, tokenErr := getClaimsFromToken(tokenCookie.Value, c.jwtSecret)
-
 	if tokenErr != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -255,22 +267,14 @@ func (c Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, req
 	}
 }
 
-func (c Controller) GetFullUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
-	id, status := idFromRequest(request, c.jwtSecret)
+func (c Controller) GetUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
+	userInfo, status := userInfoFromRequest(request, c.jwtSecret)
 	if status != http.StatusOK {
 		responseWriter.WriteHeader(int(status))
 		return
 	}
 
-	fullUserInfo, err := c.signinService.UserProfile(id)
-	if err != nil {
-		responseWriter.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	fullUserInfo.Password = ""
-
-	jsonBytes, err := dumpsJson(fullUserInfo)
+	jsonBytes, err := dumpsJson(userInfo)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -286,21 +290,13 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	id, status := idFromRequest(request, c.jwtSecret)
+	userInfo, status := userInfoFromRequest(request, c.jwtSecret)
 	if status != http.StatusOK {
 		responseWriter.WriteHeader(int(status))
 		return
 	}
 
-	user, err := c.signinService.UserProfile(id)
-	if err != nil {
-		responseWriter.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	user.PurchasedRouteIds = append(user.PurchasedRouteIds, routeId)
-
-	err = c.settingsService.Update(user)
+	err = c.settingsService.SubscribeUserToRoutes(userInfo.ID, routeId)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -314,23 +310,13 @@ func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *
 		return
 	}
 
-	id, status := idFromRequest(request, c.jwtSecret)
+	user, status := userInfoFromRequest(request, c.jwtSecret)
 	if status != http.StatusOK {
 		responseWriter.WriteHeader(int(status))
 		return
 	}
 
-	user, err := c.signinService.UserProfile(id)
-	if err != nil {
-		responseWriter.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	user.FullName = dto.FullName
-	user.Phone = dto.Phone
-	user.AllowsAdvertisement = dto.AllowsAdvertisement
-
-	err = c.settingsService.Update(user)
+	err = c.settingsService.UpdateWithFields(user.ID, dto)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 	}

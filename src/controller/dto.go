@@ -1,12 +1,16 @@
 package controller
 
 type userInfoDTO struct {
-	ID string `json:"id"`
+	ID                  string `json:"id"`
+	Gmail               string `json:"gmail"`
+	FullName            string `json:"fullName"`
+	Phone               string `json:"phone"`
+	AllowsAdvertisement bool   `json:"allowsAdvertisement"`
 }
 
 type createTokenDTO struct {
-	ID          string `json:"id"`
-	RememberHim bool   `json:"rememberHim"`
+	RememberHim bool `json:"rememberHim"`
+	userInfoDTO
 }
 
 type signInDTO struct {
