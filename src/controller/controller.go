@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"auth/src/dto"
 	"auth/src/entities"
 	"net/http"
 	"time"
@@ -13,20 +14,20 @@ type signinService interface {
 
 type signupService interface {
 	SendGeneratedCode(string) (string, error)
-	AddUserToTemporaryStorage(entities.GmailWithKeyPair) error
-	RegisterUserOnRightCode(entities.GmailWithKeyPair, entities.User) (string, error)
+	AddUserToTemporaryStorage(dto.GmailWithKeyPairDTO) error
+	RegisterUserOnRightCode(dto.SignUpDTO) (string, error)
 }
 
 type settingsService interface {
-	UpdateWithFields(string, interface{}) error
+	UpdateWithFields(id string, fields dto.UpdateUserDTO) error
 	SubscribeUserToRoutes(string, string) error
 }
 
 type resetPasswordService interface {
 	NotifyUser(string) (string, error)
-	AddUserToTemporaryStorage(entities.GmailWithKeyPair) error
-	CancelPasswordResetting(entities.GmailWithKeyPair) error
-	ChangeUserPassword(entities.GmailWithKeyPair, string) error
+	AddUserToTemporaryStorage(dto.GmailWithKeyPairDTO) error
+	CancelPasswordResetting(dto.GmailWithKeyPairDTO) error
+	ChangeUserPassword(dto.PasswordResetDTO) error
 }
 
 type Controller struct {
@@ -102,7 +103,7 @@ func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Req
 		return
 	}
 
-	err = c.signupService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
+	err = c.signupService.AddUserToTemporaryStorage(dto.GmailWithKeyPairDTO{
 		Gmail: gmail,
 		Key:   key,
 	})
@@ -114,22 +115,13 @@ func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Req
 }
 
 func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, request *http.Request) {
-	dto, err := getSignUpDto(request)
+	newUser, err := getSignUpDto(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	id, err := c.signupService.RegisterUserOnRightCode(entities.GmailWithKeyPair{
-		Gmail: dto.Gmail,
-		Key:   dto.Key,
-	}, entities.User{
-		Gmail:               dto.Gmail,
-		Password:            dto.Password,
-		Phone:               dto.Phone,
-		FullName:            dto.FullName,
-		AllowsAdvertisement: dto.AllowsAdvertisement,
-	})
+	id, err := c.signupService.RegisterUserOnRightCode(newUser)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -139,10 +131,10 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 		createTokenDTO{
 			userInfoDTO: userInfoDTO{
 				ID:                  id,
-				Gmail:               dto.Gmail,
-				Phone:               dto.Phone,
-				FullName:            dto.FullName,
-				AllowsAdvertisement: dto.AllowsAdvertisement,
+				Gmail:               newUser.Gmail,
+				Phone:               newUser.Phone,
+				FullName:            newUser.FullName,
+				AllowsAdvertisement: newUser.AllowsAdvertisement,
 			},
 		},
 		c.jwtSecret,
@@ -218,7 +210,7 @@ func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *h
 		return
 	}
 
-	err = c.resetPasswordService.AddUserToTemporaryStorage(entities.GmailWithKeyPair{
+	err = c.resetPasswordService.AddUserToTemporaryStorage(dto.GmailWithKeyPairDTO{
 		Gmail: gmail,
 		Key:   code,
 	})
@@ -229,18 +221,13 @@ func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *h
 }
 
 func (c Controller) CancelPasswordResetting(responseWriter http.ResponseWriter, request *http.Request) {
-	user, err := getPasswordResetDto(request)
+	pair, err := getGmailWithKeyDTO(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = c.resetPasswordService.CancelPasswordResetting(
-		entities.GmailWithKeyPair{
-			Gmail: user.Gmail,
-			Key:   user.Key,
-		},
-	)
+	err = c.resetPasswordService.CancelPasswordResetting(pair)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -254,13 +241,7 @@ func (c Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, req
 		return
 	}
 
-	err = c.resetPasswordService.ChangeUserPassword(
-		entities.GmailWithKeyPair{
-			Gmail: user.Gmail,
-			Key:   user.Key,
-		},
-		user.Password,
-	)
+	err = c.resetPasswordService.ChangeUserPassword(user)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return

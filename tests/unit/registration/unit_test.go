@@ -1,6 +1,7 @@
 package registration
 
 import (
+	"auth/src/dto"
 	"auth/src/entities"
 	"auth/src/services/signup"
 	"auth/src/utils"
@@ -30,7 +31,7 @@ func TestAddUserToTemporaryStorage(t *testing.T) {
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
 	s := signup.NewRegistrationService(sm, tsm, nil, nil, nil)
-	testUser := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
+	testUser := dto.GmailWithKeyPairDTO{Gmail: "user@gmail.com", Key: "12345"}
 
 	err := s.AddUserToTemporaryStorage(testUser)
 	if err != nil {
@@ -51,7 +52,7 @@ func TestAddAlreadyRegisteredUserToTemporaryStorage(t *testing.T) {
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
 	s := signup.NewRegistrationService(sm, tsm, nil, nil, nil)
-	testUser := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
+	testUser := dto.GmailWithKeyPairDTO{Gmail: "user@gmail.com", Key: "12345"}
 
 	_, err := sm.Create(entities.User{Gmail: "user@gmail.com"})
 	if err != nil {
@@ -74,7 +75,7 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 	s := signup.NewRegistrationService(sm, tsm, nil, generateCode, hash)
 
 	const testGmail = "test@gmail.com"
-	pair := entities.GmailWithKeyPair{Gmail: testGmail, Key: "12345"}
+	pair := dto.GmailWithKeyPairDTO{Gmail: testGmail, Key: "12345"}
 	user := entities.User{Gmail: testGmail}
 
 	err := tsm.Create(pair)
@@ -82,7 +83,7 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = s.RegisterUserOnRightCode(pair, user)
+	_, err = s.RegisterUserOnRightCode(dto.SignUpDTO{Gmail: testGmail, Key: "12345"})
 	if err != nil {
 		t.Errorf("RegisterUserOnRightCode error: %v", err)
 	}

@@ -13,8 +13,3 @@ type UserEntity struct {
 	ID string
 	User
 }
-
-type GmailWithKeyPair struct {
-	Gmail string `json:"gmail"`
-	Key   string `json:"id"`
-}

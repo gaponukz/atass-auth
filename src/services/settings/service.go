@@ -1,8 +1,8 @@
 package settings
 
 import (
+	"auth/src/dto"
 	"auth/src/entities"
-	"errors"
 )
 
 type storage interface {
@@ -14,30 +14,19 @@ type settingsService struct {
 	db storage
 }
 
-type updateUserDTO struct {
-	FullName            string `json:"fullName"`
-	Phone               string `json:"phone"`
-	AllowsAdvertisement bool   `json:"allowsAdvertisement"`
-}
-
 func NewSettingsService(db storage) settingsService {
 	return settingsService{db: db}
 }
 
-func (s settingsService) UpdateWithFields(id string, fields interface{}) error {
-	dto, ok := fields.(updateUserDTO)
-	if !ok {
-		return errors.New("expected updateUserDTO")
-	}
-
+func (s settingsService) UpdateWithFields(id string, fields dto.UpdateUserDTO) error {
 	user, err := s.db.ByID(id)
 	if err != nil {
 		return err
 	}
 
-	user.FullName = dto.FullName
-	user.Phone = dto.Phone
-	user.AllowsAdvertisement = dto.AllowsAdvertisement
+	user.FullName = fields.FullName
+	user.Phone = fields.Phone
+	user.AllowsAdvertisement = fields.AllowsAdvertisement
 
 	return s.db.Update(user)
 }

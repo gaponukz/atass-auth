@@ -1,6 +1,7 @@
 package resetpassword
 
 import (
+	"auth/src/dto"
 	"auth/src/entities"
 	"auth/src/services/passreset"
 	"auth/src/utils"
@@ -33,7 +34,7 @@ func TestAddUserToTemporaryStorage(t *testing.T) {
 	s := passreset.NewResetPasswordService(sm, tsm, nil, nil, nil)
 
 	testUser := entities.User{Gmail: "user@gmail.com"}
-	pair := entities.GmailWithKeyPair{Gmail: "user@gmail.com", Key: "12345"}
+	pair := dto.GmailWithKeyPairDTO{Gmail: "user@gmail.com", Key: "12345"}
 
 	_, err := sm.Create(testUser)
 	if err != nil {
@@ -58,7 +59,7 @@ func TestAddUserToTemporaryStorage(t *testing.T) {
 func TestCancelPasswordResetting(t *testing.T) {
 	const gmail = "test@gmain.com"
 	const key = "12345"
-	testPair := entities.GmailWithKeyPair{Gmail: gmail, Key: key}
+	testPair := dto.GmailWithKeyPairDTO{Gmail: gmail, Key: key}
 	testUser := entities.User{Gmail: gmail, Password: "old"}
 
 	sm := mocks.NewMockStorage()
@@ -89,7 +90,7 @@ func TestCancelPasswordResetting(t *testing.T) {
 func TestChangeUserPassword(t *testing.T) {
 	const gmail = "test@gmain.com"
 	const key = "12345"
-	testPair := entities.GmailWithKeyPair{Gmail: gmail, Key: key}
+	testPair := dto.GmailWithKeyPairDTO{Gmail: gmail, Key: key}
 	testUser := entities.User{Gmail: gmail, Password: "old"}
 
 	sm := mocks.NewMockStorage()
@@ -107,7 +108,7 @@ func TestChangeUserPassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = s.ChangeUserPassword(testPair, "new")
+	err = s.ChangeUserPassword(dto.PasswordResetDTO{Gmail: gmail, Key: key, Password: "new"})
 	if err != nil {
 		t.Errorf("error changing password: %v", err)
 	}

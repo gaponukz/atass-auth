@@ -1,6 +1,7 @@
 package passreset
 
 import (
+	"auth/src/dto"
 	"auth/src/entities"
 	"auth/src/errors"
 	"auth/src/utils"
@@ -13,9 +14,9 @@ type updateAndReadAbleStorage interface {
 }
 
 type gmailKeyPairStorage interface {
-	Create(entities.GmailWithKeyPair) error
-	Delete(entities.GmailWithKeyPair) error
-	GetByUniqueKey(string) (entities.GmailWithKeyPair, error)
+	Create(dto.GmailWithKeyPairDTO) error
+	Delete(dto.GmailWithKeyPairDTO) error
+	GetByUniqueKey(string) (dto.GmailWithKeyPairDTO, error)
 }
 
 type resetPasswordService struct {
@@ -49,7 +50,7 @@ func (s resetPasswordService) NotifyUser(userGmail string) (string, error) {
 	return key, err
 }
 
-func (s resetPasswordService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
+func (s resetPasswordService) AddUserToTemporaryStorage(user dto.GmailWithKeyPairDTO) error {
 	users, err := s.userStorage.ReadAll()
 	if err != nil {
 		return err
@@ -66,7 +67,7 @@ func (s resetPasswordService) AddUserToTemporaryStorage(user entities.GmailWithK
 	return s.temporaryStorage.Create(user)
 }
 
-func (s resetPasswordService) CancelPasswordResetting(user entities.GmailWithKeyPair) error {
+func (s resetPasswordService) CancelPasswordResetting(user dto.GmailWithKeyPairDTO) error {
 	err := s.temporaryStorage.Delete(user)
 	if err != nil {
 		return errors.ErrRegisterRequestMissing
@@ -75,8 +76,8 @@ func (s resetPasswordService) CancelPasswordResetting(user entities.GmailWithKey
 	return nil
 }
 
-func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair, newPassword string) error {
-	err := s.temporaryStorage.Delete(user)
+func (s resetPasswordService) ChangeUserPassword(data dto.PasswordResetDTO) error {
+	err := s.temporaryStorage.Delete(dto.GmailWithKeyPairDTO{Gmail: data.Gmail, Key: data.Key})
 	if err != nil {
 		return errors.ErrRegisterRequestMissing
 	}
@@ -87,14 +88,14 @@ func (s resetPasswordService) ChangeUserPassword(user entities.GmailWithKeyPair,
 	}
 
 	userToUpdate, err := utils.Find(users, func(u entities.UserEntity) bool {
-		return u.Gmail == user.Gmail
+		return u.Gmail == data.Gmail
 	})
 
 	if err != nil {
 		return err
 	}
 
-	userToUpdate.Password = s.hash(newPassword)
+	userToUpdate.Password = s.hash(data.Password)
 
 	return s.userStorage.Update(userToUpdate)
 }
