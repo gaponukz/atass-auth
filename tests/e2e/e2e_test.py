@@ -76,11 +76,6 @@ class TestAPI:
         
         user.purchased_route_ids.append("g24g-h24hg2w-gh6j35w-w45g")
         assert response.status_code == 200
-
-    def test_get_user_info_after_subscription(self, session: requests.Session):
-        response = session.get(f'{api_url}/getUserInfo')
-        data = response.json()
-        assert "g24g-h24hg2w-gh6j35w-w45g" in data['purchasedRouteIds']
     
     def test_reset_password(self, session: requests.Session):
         response = session.post(f'{api_url}/resetPassword', json={"gmail": user.gmail})

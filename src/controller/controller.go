@@ -3,6 +3,7 @@ package controller
 import (
 	"auth/src/dto"
 	"auth/src/entities"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -244,6 +245,7 @@ func (c Controller) GetUserInfo(responseWriter http.ResponseWriter, request *htt
 		return
 	}
 
+	fmt.Println(userInfo, status)
 	jsonBytes, err := dumpsJson(userInfo)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
@@ -280,22 +282,29 @@ func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *
 		return
 	}
 
-	claims, tokenErr := getClaimsFromRequest(request, c.jwtSecret)
+	oldClaims, tokenErr := getClaimsFromRequest(request, c.jwtSecret)
 	if tokenErr != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = c.settingsService.UpdateWithFields(claims.userInfoDTO.ID, dto)
+	err = c.settingsService.UpdateWithFields(oldClaims.userInfoDTO.ID, dto)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 	}
 
-	claims.userInfoDTO.FullName = dto.FullName
-	claims.userInfoDTO.Phone = dto.Phone
-	claims.userInfoDTO.AllowsAdvertisement = dto.AllowsAdvertisement
+	newClaims := &claims{
+		userInfoDTO: userInfoDTO{
+			ID:                  oldClaims.userInfoDTO.ID,
+			Gmail:               oldClaims.userInfoDTO.Gmail,
+			Phone:               dto.Phone,
+			FullName:            dto.FullName,
+			AllowsAdvertisement: dto.AllowsAdvertisement,
+		},
+		RegisteredClaims: oldClaims.RegisteredClaims,
+	}
 
-	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(claims, c.jwtSecret)
+	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(newClaims, c.jwtSecret)
 
 	if newTokernErr != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)

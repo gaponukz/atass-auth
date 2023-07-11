@@ -20,7 +20,7 @@ func genarateToken(dto createTokenDTO, jwtSecret string) (string, time.Time, err
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
-		userInfoDTO: userInfoDTO{ID: dto.ID},
+		userInfoDTO: dto.userInfoDTO,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -44,11 +44,7 @@ func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (use
 		return userInfoDTO{}, fmt.Errorf("unauthorized")
 	}
 
-	dto := userInfoDTO{
-		ID: claims.userInfoDTO.ID,
-	}
-
-	return dto, err
+	return claims.userInfoDTO, err
 }
 
 func getClaimsFromRequest(request *http.Request, secret string) (*claims, error) {
