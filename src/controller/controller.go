@@ -153,18 +153,7 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 }
 
 func (c Controller) Refresh(responseWriter http.ResponseWriter, request *http.Request) {
-	tokenCookie, err := request.Cookie("token")
-
-	if err != nil {
-		if err == http.ErrNoCookie {
-			responseWriter.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		responseWriter.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	claims, tokenErr := getClaimsFromToken(tokenCookie.Value, c.jwtSecret)
+	claims, tokenErr := getClaimsFromRequest(request, c.jwtSecret)
 	if tokenErr != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -291,14 +280,31 @@ func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *
 		return
 	}
 
-	user, status := userInfoFromRequest(request, c.jwtSecret)
-	if status != http.StatusOK {
-		responseWriter.WriteHeader(int(status))
+	claims, tokenErr := getClaimsFromRequest(request, c.jwtSecret)
+	if tokenErr != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = c.settingsService.UpdateWithFields(user.ID, dto)
+	err = c.settingsService.UpdateWithFields(claims.userInfoDTO.ID, dto)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 	}
+
+	claims.userInfoDTO.FullName = dto.FullName
+	claims.userInfoDTO.Phone = dto.Phone
+	claims.userInfoDTO.AllowsAdvertisement = dto.AllowsAdvertisement
+
+	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(claims, c.jwtSecret)
+
+	if newTokernErr != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(responseWriter, &http.Cookie{
+		Name:    "token",
+		Value:   newToken,
+		Expires: expirationTime,
+	})
 }
