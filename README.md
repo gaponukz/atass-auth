@@ -130,8 +130,7 @@ This document provides an overview of the API endpoints and request bodies for t
     "gmail": "user@example.com",
     "phone": "3809734275232",
     "fullName": "Alex Yah",
-    "rememberHim": true,
-    "purchasedRouteIds": null
+    "rememberHim": true
 }
 ```
 ### Update user data.

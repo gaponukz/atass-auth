@@ -1,6 +1,7 @@
 package signup
 
 import (
+	"auth/src/dto"
 	"auth/src/entities"
 	"auth/src/errors"
 	"auth/src/utils"
@@ -12,9 +13,9 @@ type createAndReadAbleStorage interface {
 }
 
 type gmailKeyPairStorage interface {
-	Create(entities.GmailWithKeyPair) error
-	Delete(entities.GmailWithKeyPair) error
-	GetByUniqueKey(string) (entities.GmailWithKeyPair, error)
+	Create(dto.GmailWithKeyPairDTO) error
+	Delete(dto.GmailWithKeyPairDTO) error
+	GetByUniqueKey(string) (dto.GmailWithKeyPairDTO, error)
 }
 
 func NewRegistrationService(
@@ -48,7 +49,7 @@ func (s registrationService) SendGeneratedCode(userGmail string) (string, error)
 	return key, err
 }
 
-func (s registrationService) AddUserToTemporaryStorage(user entities.GmailWithKeyPair) error {
+func (s registrationService) AddUserToTemporaryStorage(user dto.GmailWithKeyPairDTO) error {
 	users, err := s.userStorage.ReadAll()
 	if err != nil {
 		return err
@@ -65,14 +66,20 @@ func (s registrationService) AddUserToTemporaryStorage(user entities.GmailWithKe
 	return s.futureUserStorage.Create(user)
 }
 
-func (s registrationService) RegisterUserOnRightCode(pair entities.GmailWithKeyPair, user entities.User) (string, error) {
-	err := s.futureUserStorage.Delete(pair)
+func (s registrationService) RegisterUserOnRightCode(user dto.SignUpDTO) (string, error) {
+	err := s.futureUserStorage.Delete(dto.GmailWithKeyPairDTO{Gmail: user.Gmail, Key: user.Key})
 	if err != nil {
 		return "", errors.ErrRegisterRequestMissing
 	}
 
 	user.Password = s.hash(user.Password)
-	newUser, err := s.userStorage.Create(user)
+	newUser, err := s.userStorage.Create(entities.User{
+		Gmail:               user.Gmail,
+		Phone:               user.Phone,
+		FullName:            user.FullName,
+		Password:            user.Password,
+		AllowsAdvertisement: user.AllowsAdvertisement,
+	})
 	if err != nil {
 		return "", err
 	}

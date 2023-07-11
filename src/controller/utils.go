@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"auth/src/dto"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,48 +27,39 @@ func decodeRequestBody(request *http.Request, data interface{}) error {
 	return nil
 }
 
-func getSignInDto(request *http.Request) (signInDTO, error) {
-	var creds signInDTO
+func getGmailWithKeyDTO(request *http.Request) (dto.GmailWithKeyPairDTO, error) {
+	var data dto.GmailWithKeyPairDTO
 
-	err := decodeRequestBody(request, &creds)
-	if err != nil {
-		return signInDTO{}, err
-	}
-
-	return creds, nil
+	err := decodeRequestBody(request, &data)
+	return data, err
 }
 
-func getSignUpDto(request *http.Request) (signUpDTO, error) {
-	var creds signUpDTO
+func getSignInDto(request *http.Request) (dto.SignInDTO, error) {
+	var creds dto.SignInDTO
 
 	err := decodeRequestBody(request, &creds)
-	if err != nil {
-		return signUpDTO{}, err
-	}
-
-	return creds, nil
+	return creds, err
 }
 
-func getPasswordResetDto(request *http.Request) (passwordResetDTO, error) {
-	var creds passwordResetDTO
+func getSignUpDto(request *http.Request) (dto.SignUpDTO, error) {
+	var creds dto.SignUpDTO
 
 	err := decodeRequestBody(request, &creds)
-	if err != nil {
-		return passwordResetDTO{}, err
-	}
-
-	return creds, nil
+	return creds, err
 }
 
-func getUpdateUserDTO(request *http.Request) (updateUserDTO, error) {
-	var dto updateUserDTO
+func getPasswordResetDto(request *http.Request) (dto.PasswordResetDTO, error) {
+	var creds dto.PasswordResetDTO
+
+	err := decodeRequestBody(request, &creds)
+	return creds, err
+}
+
+func getUpdateUserDTO(request *http.Request) (dto.UpdateUserDTO, error) {
+	var dto dto.UpdateUserDTO
 
 	err := decodeRequestBody(request, &dto)
-	if err != nil {
-		return updateUserDTO{}, err
-	}
-
-	return dto, nil
+	return dto, err
 }
 
 func getOneStringFieldFromBody(request *http.Request, field string) (string, error) {
@@ -108,24 +100,4 @@ func dumpsJson(data interface{}) ([]byte, error) {
 	}
 
 	return jsonData, nil
-}
-
-type statusCode int
-
-func idFromRequest(request *http.Request, secret string) (string, statusCode) {
-	tokenCookie, err := request.Cookie("token")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			return "", http.StatusUnauthorized
-		}
-
-		return "", http.StatusBadRequest
-	}
-
-	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, secret)
-	if err != nil {
-		return "", http.StatusUnauthorized
-	}
-
-	return dto.ID, http.StatusOK
 }

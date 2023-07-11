@@ -20,20 +20,20 @@ func NewSigninService(db repository, hash func(string) string) signinService {
 	return signinService{db: db, hash: hash}
 }
 
-func (s signinService) Login(gmail, password string) (string, error) {
+func (s signinService) Login(gmail, password string) (entities.UserEntity, error) {
 	users, err := s.db.ReadAll()
 	if err != nil {
-		return "", err
+		return entities.UserEntity{}, err
 	}
 
 	user, err := utils.Find(users, func(u entities.UserEntity) bool {
 		return u.Gmail == gmail && u.Password == s.hash(password)
 	})
 	if err != nil {
-		return "", errors.ErrUserNotFound
+		return entities.UserEntity{}, errors.ErrUserNotFound
 	}
 
-	return user.ID, nil
+	return user, nil
 }
 
 func (s signinService) UserProfile(id string) (entities.UserEntity, error) {

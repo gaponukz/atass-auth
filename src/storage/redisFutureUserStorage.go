@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"auth/src/entities"
+	"auth/src/dto"
 	"context"
 	"fmt"
 	"time"
@@ -29,27 +29,27 @@ func NewRedisTemporaryStorage(address string, expiration time.Duration, prefix s
 	}
 }
 
-func (stor gmailWithKeyPairRedisStorage) Create(user entities.GmailWithKeyPair) error {
+func (stor gmailWithKeyPairRedisStorage) Create(user dto.GmailWithKeyPairDTO) error {
 	return stor.rdb.Set(ctx, user.Key+stor.prefix, user.Gmail, stor.expiration).Err()
 }
 
-func (stor gmailWithKeyPairRedisStorage) GetByUniqueKey(key string) (entities.GmailWithKeyPair, error) {
+func (stor gmailWithKeyPairRedisStorage) GetByUniqueKey(key string) (dto.GmailWithKeyPairDTO, error) {
 	gmail, err := stor.rdb.Get(ctx, key+stor.prefix).Result()
 
 	if err != nil {
 		if err == redis.Nil {
-			return entities.GmailWithKeyPair{}, fmt.Errorf("key not found: %v", key)
+			return dto.GmailWithKeyPairDTO{}, fmt.Errorf("key not found: %v", key)
 		}
 
-		return entities.GmailWithKeyPair{}, err
+		return dto.GmailWithKeyPairDTO{}, err
 	}
 
-	return entities.GmailWithKeyPair{
+	return dto.GmailWithKeyPairDTO{
 		Gmail: gmail,
 		Key:   key,
 	}, nil
 }
 
-func (stor gmailWithKeyPairRedisStorage) Delete(user entities.GmailWithKeyPair) error {
+func (stor gmailWithKeyPairRedisStorage) Delete(user dto.GmailWithKeyPairDTO) error {
 	return stor.rdb.Del(ctx, user.Key+stor.prefix).Err()
 }

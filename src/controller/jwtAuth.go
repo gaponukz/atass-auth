@@ -20,7 +20,7 @@ func genarateToken(dto createTokenDTO, jwtSecret string) (string, time.Time, err
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
-		userInfoDTO: userInfoDTO{ID: dto.ID},
+		userInfoDTO: dto.userInfoDTO,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -44,16 +44,18 @@ func getAuthorizedUserDataFromCookie(cookie *http.Cookie, jwtSecret string) (use
 		return userInfoDTO{}, fmt.Errorf("unauthorized")
 	}
 
-	dto := userInfoDTO{
-		ID: claims.userInfoDTO.ID,
-	}
-
-	return dto, err
+	return claims.userInfoDTO, err
 }
 
-func getClaimsFromToken(token, secret string) (*claims, error) {
+func getClaimsFromRequest(request *http.Request, secret string) (*claims, error) {
+	tokenCookie, err := request.Cookie("token")
+
+	if err != nil {
+		return nil, err
+	}
+
 	_claims := &claims{}
-	tkn, err := jwt.ParseWithClaims(token, _claims, func(token *jwt.Token) (interface{}, error) {
+	tkn, err := jwt.ParseWithClaims(tokenCookie.Value, _claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
 
@@ -75,4 +77,24 @@ func genarateTokenFromClaims(oldClaims *claims, secret string) (string, time.Tim
 	tockenStr, err := token.SignedString([]byte(secret))
 
 	return tockenStr, expirationTime, err
+}
+
+type statusCode int
+
+func userInfoFromRequest(request *http.Request, secret string) (userInfoDTO, statusCode) {
+	tokenCookie, err := request.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return userInfoDTO{}, http.StatusUnauthorized
+		}
+
+		return userInfoDTO{}, http.StatusBadRequest
+	}
+
+	dto, err := getAuthorizedUserDataFromCookie(tokenCookie, secret)
+	if err != nil {
+		return userInfoDTO{}, http.StatusUnauthorized
+	}
+
+	return dto, http.StatusOK
 }
