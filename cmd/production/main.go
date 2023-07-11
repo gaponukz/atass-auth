@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"auth/src/config"
 	"auth/src/controller"
 	"auth/src/notifier"
 	"auth/src/security"
@@ -11,13 +12,12 @@ import (
 	"auth/src/services/settings"
 	"auth/src/services/signin"
 	"auth/src/services/signup"
-	appSettings "auth/src/settings"
 	"auth/src/storage"
 	"auth/src/web"
 )
 
 func main() {
-	setting := appSettings.NewDotEnvSettings().Load()
+	setting := config.NewDotEnvSettings().Load()
 	hash := security.Sha256WithSecretFactory(setting.HashSecret)
 	futureUserStor := storage.NewRedisTemporaryStorage(setting.RedisAddress, 30*time.Minute, "register")
 	resetPassStor := storage.NewRedisTemporaryStorage(setting.RedisAddress, 5*time.Minute, "reset")

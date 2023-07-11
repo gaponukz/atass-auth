@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"auth/src/config"
 	"auth/src/controller"
 	"auth/src/security"
 	"auth/src/services/passreset"
@@ -15,8 +16,9 @@ import (
 )
 
 func main() {
-	futureUserStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "register")
-	resetPassStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "reset")
+	appSettings := config.NewDotEnvSettings().Load()
+	futureUserStor := storage.NewRedisTemporaryStorage(appSettings.RedisAddress, 1*time.Minute, "register")
+	resetPassStor := storage.NewRedisTemporaryStorage(appSettings.RedisAddress, 1*time.Minute, "reset")
 	userStorage := storage.NewUserJsonFileStorage("users.json")
 
 	hash := func(s string) string { return s }
