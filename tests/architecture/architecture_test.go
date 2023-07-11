@@ -11,6 +11,7 @@ func noDependenciesPackages() []string {
 		"auth/src/entities",
 		"auth/src/utils",
 		"auth/src/errors",
+		"auth/src/dto",
 	}
 }
 
