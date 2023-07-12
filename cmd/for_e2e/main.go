@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"auth/src/controller"
-	"auth/src/security"
 	"auth/src/services/passreset"
 	"auth/src/services/settings"
 	"auth/src/services/signin"
@@ -32,10 +31,11 @@ func main() {
 	hash := func(s string) string { return s }
 	sendRegisterGmail := func(gmail, key string) error { return nil }
 	sendResetPasswordLetter := func(gmail, key string) error { return nil }
+	generateCode := func() string { return "12345" }
 
 	signinService := signin.NewSigninService(userStorage, hash)
-	signupService := signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, security.GenerateCode, hash)
-	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, security.GenerateCode)
+	signupService := signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, generateCode, hash)
+	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, generateCode)
 	settingsService := settings.NewSettingsService(userStorage)
 
 	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService)
