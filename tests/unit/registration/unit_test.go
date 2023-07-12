@@ -65,6 +65,20 @@ func TestAddAlreadyRegisteredUserToTemporaryStorage(t *testing.T) {
 	}
 }
 
+func TestAddWrongCodeUser(t *testing.T) {
+	const expectedCode = "12345"
+	sm := mocks.NewMockStorage()
+	tsm := mocks.NewTemporaryStorageMock()
+	generateCode := func() string { return expectedCode }
+	s := signup.NewRegistrationService(sm, tsm, nil, generateCode, nil)
+	testUser := dto.GmailWithKeyPairDTO{Gmail: "user@gmail.com", Key: expectedCode + "lala"}
+
+	err := s.AddUserToTemporaryStorage(testUser)
+	if err == nil {
+		t.Error("successfully added registered user with wrong code")
+	}
+}
+
 func TestRegisterUserOnRightCode(t *testing.T) {
 	const expectedCode = "12345"
 	sm := mocks.NewMockStorage()

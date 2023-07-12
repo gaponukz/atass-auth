@@ -87,6 +87,33 @@ func TestCancelPasswordResetting(t *testing.T) {
 	}
 }
 
+func TestChangeUserPasswordWithWrongCode(t *testing.T) {
+	const gmail = "test@gmain.com"
+	const key = "12345"
+	testPair := dto.GmailWithKeyPairDTO{Gmail: gmail, Key: key}
+	testUser := entities.User{Gmail: gmail, Password: "old"}
+
+	sm := mocks.NewMockStorage()
+	tsm := mocks.NewTemporaryStorageMock()
+	hash := func(s string) string { return s }
+	s := passreset.NewResetPasswordService(sm, tsm, nil, hash, nil)
+
+	err := tsm.Create(testPair)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = sm.Create(testUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = s.ChangeUserPassword(dto.PasswordResetDTO{Gmail: gmail, Key: key + "lala", Password: "new"})
+	if err == nil {
+		t.Error("can change password with wrong code")
+	}
+}
+
 func TestChangeUserPassword(t *testing.T) {
 	const gmail = "test@gmain.com"
 	const key = "12345"
