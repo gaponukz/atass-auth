@@ -28,8 +28,12 @@ class TestAPI:
     def test_confirm_registration(self, session: requests.Session):
         time.sleep(1)
         json = user.to_json()
-        json['key'] = "12345"
+        
+        json['key'] = "wrongcode"
+        response = session.post(f'{api_url}/confirmRegistration', json=json)
+        assert response.status_code != 200
 
+        json['key'] = "12345"
         response = session.post(f'{api_url}/confirmRegistration', json=json)
         assert response.status_code == 200
         assert session.cookies.get("token") is not None
@@ -82,6 +86,15 @@ class TestAPI:
         assert response.status_code == 200
 
         user.password = "newpassword"
+    
+        response = session.post(f'{api_url}/confirmResetPassword', json={
+            "gmail": user.gmail,
+            "password": user.password,
+            "key": "wrongcode"
+        })
+
+        assert response.status_code != 200
+
         response = session.post(f'{api_url}/confirmResetPassword', json={
             "gmail": user.gmail,
             "password": user.password,

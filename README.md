@@ -24,6 +24,7 @@ This document provides an overview of the API endpoints and request bodies for t
 | Code | Description |
 | :--- | :--- |
 | `400` | Request Body is not correct |
+| `409` | This gmail already exist |
 | `500` | Could not send letter with code to user |
 
 ### Confirm Registration
@@ -66,7 +67,7 @@ This document provides an overview of the API endpoints and request bodies for t
 | Code | Description |
 | :--- | :--- |
 | `401` | Request Body is not correct or user not found |
-| `500` | something went wrong while generating token (very bad) |
+| `500` | something went wrong |
 
 ### Refresh
 - URL: `/refresh`
@@ -99,6 +100,7 @@ This document provides an overview of the API endpoints and request bodies for t
 | Code | Description |
 | :--- | :--- |
 | `400` | Request Body is not correct |
+| `404` | User not exist |
 | `500` | Could not send letter with code to user |
 
 ### Confirm reset password.
@@ -110,6 +112,24 @@ This document provides an overview of the API endpoints and request bodies for t
 {
     "gmail": "user@example.com",
     "password": "somenewpassword",
+    "key": "539991"
+}
+```
+- Response:
+
+| Code | Description |
+| :--- | :--- |
+| `400` | Request Body is not correct or it's been a long time |
+| `500` | something went wrong while generating token, try signin |
+
+### Cancel reset password.
+- URL: `/cancelPasswordResetting`
+- Method: `POST`
+- Description: Reset password for existing user.
+- Request Body:
+```json
+{
+    "gmail": "user@example.com",
     "key": "539991"
 }
 ```
