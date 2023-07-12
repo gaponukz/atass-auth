@@ -3,6 +3,7 @@ package controller
 import (
 	"auth/src/dto"
 	"auth/src/entities"
+	"auth/src/errors"
 	"net/http"
 	"time"
 )
@@ -59,7 +60,12 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 
 	user, err := c.signinService.Login(creds.Gmail, creds.Password)
 	if err != nil {
-		responseWriter.WriteHeader(http.StatusUnauthorized)
+		if err == errors.ErrUserNotFound {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -107,8 +113,12 @@ func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Req
 		Gmail: gmail,
 		Key:   key,
 	})
-
 	if err != nil {
+		if err == errors.ErrUserAlreadyExists {
+			responseWriter.WriteHeader(http.StatusConflict)
+			return
+		}
+
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -123,7 +133,12 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 
 	id, err := c.signupService.RegisterUserOnRightCode(newUser)
 	if err != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
+		if err == errors.ErrRegisterRequestMissing {
+			responseWriter.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -204,6 +219,10 @@ func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *h
 		Key:   code,
 	})
 	if err != nil {
+		if err == errors.ErrUserNotFound {
+			responseWriter.WriteHeader(http.StatusNotFound)
+			return
+		}
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -218,7 +237,12 @@ func (c Controller) CancelPasswordResetting(responseWriter http.ResponseWriter, 
 
 	err = c.resetPasswordService.CancelPasswordResetting(pair)
 	if err != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
+		if err == errors.ErrPasswordResetRequestMissing {
+			responseWriter.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
@@ -232,7 +256,12 @@ func (c Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, req
 
 	err = c.resetPasswordService.ChangeUserPassword(user)
 	if err != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
+		if err == errors.ErrPasswordResetRequestMissing {
+			responseWriter.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }

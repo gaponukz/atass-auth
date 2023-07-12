@@ -5,7 +5,6 @@ import (
 	"auth/src/entities"
 	"auth/src/errors"
 	"auth/src/utils"
-	"fmt"
 )
 
 type updateAndReadAbleStorage interface {
@@ -61,7 +60,7 @@ func (s resetPasswordService) AddUserToTemporaryStorage(user dto.GmailWithKeyPai
 	})
 
 	if !isGmailExist {
-		return fmt.Errorf("gmail %s not found", user.Gmail)
+		return errors.ErrUserNotFound
 	}
 
 	return s.temporaryStorage.Create(user)
@@ -70,7 +69,7 @@ func (s resetPasswordService) AddUserToTemporaryStorage(user dto.GmailWithKeyPai
 func (s resetPasswordService) CancelPasswordResetting(user dto.GmailWithKeyPairDTO) error {
 	err := s.temporaryStorage.Delete(user)
 	if err != nil {
-		return errors.ErrRegisterRequestMissing
+		return errors.ErrPasswordResetRequestMissing
 	}
 
 	return nil
@@ -79,7 +78,7 @@ func (s resetPasswordService) CancelPasswordResetting(user dto.GmailWithKeyPairD
 func (s resetPasswordService) ChangeUserPassword(data dto.PasswordResetDTO) error {
 	err := s.temporaryStorage.Delete(dto.GmailWithKeyPairDTO{Gmail: data.Gmail, Key: data.Key})
 	if err != nil {
-		return errors.ErrRegisterRequestMissing
+		return errors.ErrPasswordResetRequestMissing
 	}
 
 	users, err := s.userStorage.ReadAll()

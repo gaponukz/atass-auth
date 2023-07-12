@@ -51,5 +51,14 @@ func (stor gmailWithKeyPairRedisStorage) GetByUniqueKey(key string) (dto.GmailWi
 }
 
 func (stor gmailWithKeyPairRedisStorage) Delete(user dto.GmailWithKeyPairDTO) error {
+	gmail, err := stor.rdb.Get(ctx, user.Key+stor.prefix).Result()
+	if err != nil {
+		return err
+	}
+
+	if gmail != user.Gmail {
+		return fmt.Errorf("key not found: %v", user.Key)
+	}
+
 	return stor.rdb.Del(ctx, user.Key+stor.prefix).Err()
 }
