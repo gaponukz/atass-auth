@@ -3,7 +3,6 @@ package controller
 import (
 	"auth/src/dto"
 	"auth/src/entities"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -245,7 +244,6 @@ func (c Controller) GetUserInfo(responseWriter http.ResponseWriter, request *htt
 		return
 	}
 
-	fmt.Println(userInfo, status)
 	jsonBytes, err := dumpsJson(userInfo)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
