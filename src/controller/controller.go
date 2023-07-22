@@ -170,7 +170,7 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 func (c Controller) Refresh(responseWriter http.ResponseWriter, request *http.Request) {
 	claims, tokenErr := getClaimsFromRequest(request, c.jwtSecret)
 	if tokenErr != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
+		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
