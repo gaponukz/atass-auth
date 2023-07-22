@@ -10,6 +10,6 @@ type User struct {
 }
 
 type UserEntity struct {
-	ID string
+	ID string `json:"id"`
 	User
 }
