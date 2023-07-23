@@ -21,7 +21,12 @@ type signupService interface {
 
 type settingsService interface {
 	UpdateWithFields(id string, fields dto.UpdateUserDTO) error
+}
+
+type reoutesService interface {
 	SubscribeUserToRoutes(string, string) error
+	UnsubscribeUserFromRoutes(string, string) error
+	GetRoutes(string) ([]string, error)
 }
 
 type resetPasswordService interface {
@@ -37,10 +42,11 @@ type Controller struct {
 	signupService        signupService
 	resetPasswordService resetPasswordService
 	settingsService      settingsService
+	reoutesService       reoutesService
 }
 
 func NewController(jwtSecret string, signinService signinService, signupService signupService,
-	resetPasswordService resetPasswordService, settingsService settingsService) *Controller {
+	resetPasswordService resetPasswordService, settingsService settingsService, reoutesService reoutesService) *Controller {
 
 	return &Controller{
 		jwtSecret:            jwtSecret,
@@ -48,6 +54,7 @@ func NewController(jwtSecret string, signinService signinService, signupService 
 		signupService:        signupService,
 		resetPasswordService: resetPasswordService,
 		settingsService:      settingsService,
+		reoutesService:       reoutesService,
 	}
 }
 
@@ -295,8 +302,33 @@ func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	err = c.settingsService.SubscribeUserToRoutes(userInfo.ID, routeId)
+	err = c.reoutesService.SubscribeUserToRoutes(userInfo.ID, routeId)
 	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (c Controller) UnsubscribeFromTheRoute(responseWriter http.ResponseWriter, request *http.Request) {
+	routeId, err := getOneStringFieldFromBody(request, "routeId")
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	userInfo, status := userInfoFromRequest(request, c.jwtSecret)
+	if status != http.StatusOK {
+		responseWriter.WriteHeader(int(status))
+		return
+	}
+
+	err = c.reoutesService.UnsubscribeUserFromRoutes(userInfo.ID, routeId)
+	if err != nil {
+		if err == errors.ErrRouteNotFound {
+			responseWriter.WriteHeader(http.StatusNotFound)
+			return
+		}
+
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}

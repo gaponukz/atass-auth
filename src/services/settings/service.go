@@ -30,14 +30,3 @@ func (s settingsService) UpdateWithFields(id string, fields dto.UpdateUserDTO) e
 
 	return s.db.Update(user)
 }
-
-func (s settingsService) SubscribeUserToRoutes(id string, routeID string) error {
-	user, err := s.db.ByID(id)
-	if err != nil {
-		return err
-	}
-
-	user.PurchasedRouteIds = append(user.PurchasedRouteIds, routeID)
-
-	return s.db.Update(user)
-}

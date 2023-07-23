@@ -58,6 +58,8 @@ func getMuxFromController(c *controller.Controller) *http.ServeMux {
 
 	httpRoute.HandleFunc("/getUserInfo", c.GetUserInfo)
 	httpRoute.HandleFunc("/subscribeUserToTheRoute", requiredMethod(c.SubscribeToTheRoute, http.MethodPost))
+	httpRoute.HandleFunc("/unsubscribeFromTheRoute", requiredMethod(c.UnsubscribeFromTheRoute, http.MethodPost))
+	httpRoute.HandleFunc("/getUserRoutes", requiredMethod(c.SubscribeToTheRoute, http.MethodPost))
 	httpRoute.HandleFunc("/updateUserInfo", requiredMethod(c.UpdateUserInfo, http.MethodPost))
 
 	return httpRoute
