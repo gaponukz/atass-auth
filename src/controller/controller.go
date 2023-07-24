@@ -21,7 +21,6 @@ type signupService interface {
 
 type settingsService interface {
 	UpdateWithFields(id string, fields dto.UpdateUserDTO) error
-	SubscribeUserToRoutes(string, string) error
 }
 
 type resetPasswordService interface {
@@ -280,26 +279,6 @@ func (c Controller) GetUserInfo(responseWriter http.ResponseWriter, request *htt
 	}
 	responseWriter.Header().Set("Content-Type", "application/json")
 	responseWriter.Write(jsonBytes)
-}
-
-func (c Controller) SubscribeToTheRoute(responseWriter http.ResponseWriter, request *http.Request) {
-	routeId, err := getOneStringFieldFromBody(request, "routeId")
-	if err != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	userInfo, status := userInfoFromRequest(request, c.jwtSecret)
-	if status != http.StatusOK {
-		responseWriter.WriteHeader(int(status))
-		return
-	}
-
-	err = c.settingsService.SubscribeUserToRoutes(userInfo.ID, routeId)
-	if err != nil {
-		responseWriter.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 }
 
 func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *http.Request) {

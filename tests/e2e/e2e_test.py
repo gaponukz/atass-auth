@@ -69,17 +69,6 @@ class TestAPI:
         assert data['phone'] == user.phone
         assert data['fullName'] == user.full_name
         assert data['allowsAdvertisement'] == user.allows_advertisement
-
-    def test_subscribe_user_to_route(self, session: requests.Session):
-        response = session.post(f'{api_url}/subscribeUserToTheRoute', json={
-            "routeId": "g24g-h24hg2w-gh6j35w-w45g"
-        })
-        
-        if user.purchased_route_ids is None:
-            user.purchased_route_ids = []
-        
-        user.purchased_route_ids.append("g24g-h24hg2w-gh6j35w-w45g")
-        assert response.status_code == 200
     
     def test_reset_password(self, session: requests.Session):
         response = session.post(f'{api_url}/resetPassword', json={"gmail": user.gmail})
