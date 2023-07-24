@@ -172,22 +172,6 @@ This document provides an overview of the API endpoints and request bodies for t
 | `400` | Request Body is not correct |
 | `500` | something went wrong, try signin |
 
-### Add route.
-- URL: `/subscribeUserToTheRoute`
-- Method: `POST`
-- Description: Subscribe user to the route by id.
-- Request Body:
-```json
-{
-    "routeId": "g24g-h24hg2w-gh6j35w-w45g"
-}
-```
-- Response:
-
-| Code | Description |
-| :--- | :--- |
-| `400` | Request Body is not correct |
-| `500` | something went wrong, try signin |
 
 ## Before start
 ### Settings
