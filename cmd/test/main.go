@@ -7,7 +7,6 @@ import (
 	"auth/src/config"
 	"auth/src/controller"
 	"auth/src/services/passreset"
-	"auth/src/services/routes"
 	"auth/src/services/settings"
 	"auth/src/services/signin"
 	"auth/src/services/signup"
@@ -30,9 +29,8 @@ func main() {
 	signupService := signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, generateCode, hash)
 	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, generateCode)
 	settingsService := settings.NewSettingsService(userStorage)
-	routesService := routes.NewRoutesService(userStorage)
 
-	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService, routesService)
+	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService)
 	server := web.SetupTestServer(controller)
 
 	err := server.ListenAndServe()
