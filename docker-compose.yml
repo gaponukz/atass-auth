@@ -4,6 +4,16 @@ services:
     image: redis/redis-stack-server:latest
     ports:
       - "6379:6379"
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: users
+    ports:
+      - "5432:5432"
+
   app:
     build:
       dockerfile: Dockerfile
@@ -11,6 +21,7 @@ services:
       - "8080:8080"
     depends_on:
       - redis
+      - postgres
     env_file:
       - .env
     volumes:

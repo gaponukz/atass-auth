@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - sql
 
 jobs:
   architecture:
@@ -62,6 +63,13 @@ jobs:
         ports:
           - 6379:6379
         options: --name redis-stack-server
+      
+      postgres:
+        image: postgres:latest
+        options: --name my-postgres -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=users -p 5432:5432 postgres
+        ports:
+          - "5432:5432"
+      
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
