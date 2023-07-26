@@ -15,25 +15,10 @@ import (
 )
 
 func main() {
-	creds := storage.PostgresCredentials{
-		Host:     "postgres",
-		User:     "myuser",
-		Password: "mypassword",
-		Dbname:   "users",
-		Port:     "5432",
-		Sslmode:  "disable",
-	}
-	userStorage, err := storage.NewPostgresUserStorage(creds)
-	if err != nil {
-		panic(err)
-	}
-
-	defer userStorage.DropTable()
-
 	appSettings := config.NewDotEnvSettings().Load()
 	futureUserStor := storage.NewRedisTemporaryStorage(appSettings.RedisAddress, 1*time.Minute, "register")
 	resetPassStor := storage.NewRedisTemporaryStorage(appSettings.RedisAddress, 1*time.Minute, "reset")
-	// userStorage := storage.NewUserJsonFileStorage("users.json")
+	userStorage := storage.NewUserJsonFileStorage("users.json")
 
 	hash := func(s string) string { return s }
 	sendRegisterGmail := func(gmail, key string) error { return nil }
@@ -48,7 +33,7 @@ func main() {
 	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService)
 	server := web.SetupTestServer(controller)
 
-	err = server.ListenAndServe()
+	err := server.ListenAndServe()
 	if err != nil {
 		fmt.Printf("Server error: %v\n", err)
 	}

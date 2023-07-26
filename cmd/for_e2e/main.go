@@ -27,7 +27,9 @@ func main() {
 		panic(err)
 	}
 
-	defer userStorage.DropTable()
+	defer func() {
+		_ = userStorage.DropTable()
+	}()
 
 	futureUserStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "register")
 	resetPassStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "reset")

@@ -66,9 +66,9 @@ jobs:
       
       postgres:
         image: postgres:latest
-        options: --name my-postgres -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=users -p 5432:5432 postgres
+        options: --name my-postgres -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=users -p 5433:5432 postgres
         ports:
-          - "5432:5432"
+          - "5433:5432"
       
     steps:
       - uses: actions/checkout@v3
