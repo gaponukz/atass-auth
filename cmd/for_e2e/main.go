@@ -15,7 +15,7 @@ import (
 
 func main() {
 	creds := storage.PostgresCredentials{
-		Host:     "localhost",
+		Host:     "postgres",
 		User:     "myuser",
 		Password: "mypassword",
 		Dbname:   "users",
