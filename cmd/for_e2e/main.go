@@ -22,7 +22,6 @@ func main() {
 		Port:     "5432",
 		Sslmode:  "disable",
 	}
-	time.Sleep(10 * time.Second)
 	userStorage, err := storage.NewPostgresUserStorage(creds)
 	if err != nil {
 		panic(err)
