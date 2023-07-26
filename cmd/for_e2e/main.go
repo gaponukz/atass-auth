@@ -15,13 +15,14 @@ import (
 
 func main() {
 	creds := storage.PostgresCredentials{
-		Host:     "postgres",
+		Host:     "localhost",
 		User:     "myuser",
 		Password: "mypassword",
 		Dbname:   "users",
 		Port:     "5432",
 		Sslmode:  "disable",
 	}
+	time.Sleep(10 * time.Second)
 	userStorage, err := storage.NewPostgresUserStorage(creds)
 	if err != nil {
 		panic(err)
