@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"auth/src/controller"
@@ -14,26 +15,18 @@ import (
 )
 
 func main() {
-	time.Sleep(5 * time.Second)
-	creds := storage.PostgresCredentials{
-		Host:     "postgres",
-		User:     "myuser",
-		Password: "mypassword",
-		Dbname:   "users",
-		Port:     "5432",
-		Sslmode:  "disable",
-	}
-	userStorage, err := storage.NewPostgresUserStorage(creds)
+	databaseFilename := "test.json"
+	err := os.WriteFile(databaseFilename, []byte("[]"), 0644)
 	if err != nil {
 		panic(err)
 	}
-
 	defer func() {
-		_ = userStorage.DropTable()
+		os.Remove(databaseFilename)
 	}()
 
 	futureUserStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "register")
 	resetPassStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "reset")
+	userStorage := storage.NewUserJsonFileStorage(databaseFilename)
 
 	hash := func(s string) string { return s }
 	sendRegisterGmail := func(gmail, key string) error { return nil }

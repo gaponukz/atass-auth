@@ -12,7 +12,6 @@ user = User(
     purchased_route_ids=None,
 )
 
-time.sleep(5)
 api_url = 'http://localhost:8080'
 
 @pytest.fixture(scope='session')

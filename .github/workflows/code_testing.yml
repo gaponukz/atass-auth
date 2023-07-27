@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - sql
 
 jobs:
   architecture:
@@ -63,13 +62,6 @@ jobs:
         ports:
           - 6379:6379
         options: --name redis-stack-server
-      
-      postgres:
-        image: postgres:latest
-        options: --name my-postgres -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=users postgres
-        ports:
-          - "5432:5432"
-      
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -86,6 +78,8 @@ jobs:
           python-version: '3.x'
       - name: Install dependencies
         run: pip install -r tests/e2e/requirements.txt
+      - name: Wait for Go app to start
+        run: sleep 2
       - name: Run end-to-end tests
         run: pytest tests/e2e/e2e_test.py
               
