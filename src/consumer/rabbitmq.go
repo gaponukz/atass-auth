@@ -1,4 +1,4 @@
-package main
+package consumer
 
 import (
 	"encoding/json"
@@ -79,30 +79,10 @@ func (r routesEventsListener) Listen() {
 			r.service.AddRoute(passengerID, routeID)
 		}
 	}()
-
-	fmt.Println("Consumer is waiting for messages. To exit press CTRL+C")
 	<-forever
 }
 
 func (r routesEventsListener) Close() {
 	_ = r.ch.Close()
 	_ = r.conn.Close()
-}
-
-type testRoutesService struct{}
-
-func (t testRoutesService) AddRoute(userID, routeID string) error {
-	fmt.Println(userID, routeID)
-	return nil
-}
-
-func main() {
-	server, err := NewRoutesEventsListener(testRoutesService{}, "amqp://user:password@localhost:5672/")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	defer server.Close()
-
-	server.Listen()
 }

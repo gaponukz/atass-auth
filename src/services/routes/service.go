@@ -14,6 +14,10 @@ type routesService struct {
 	db db
 }
 
+func NewRoutesService(db db) routesService {
+	return routesService{db: db}
+}
+
 func (r routesService) AddRoute(userID, routeID string) error {
 	user, err := r.db.ByID(userID)
 	if err != nil {
