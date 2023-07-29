@@ -21,6 +21,7 @@ type Settings struct {
 	PostgresDbname   string `json:"postgresDbname"`
 	PostgresPort     string `json:"postgresPort"`
 	PostgresSslmode  string `json:"postgresSslmode"`
+	RabbitUrl        string `json:"rabbitUrl"`
 }
 
 type dotEnvSettings struct{}
@@ -65,5 +66,6 @@ func (sts dotEnvSettings) Load() Settings {
 		PostgresDbname:   os.Getenv("postgresDbname"),
 		PostgresPort:     os.Getenv("postgresPort"),
 		PostgresSslmode:  os.Getenv("postgresSslmode"),
+		RabbitUrl:        os.Getenv("rabbitmqUrl"),
 	}
 }

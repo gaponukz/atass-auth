@@ -33,6 +33,7 @@ require (
 	github.com/jackc/pgconn v1.14.1
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/matthewmcnew/archtest v0.0.0-20191104172020-f1b53a45c22d
+	github.com/rabbitmq/amqp091-go v1.8.1
 	github.com/redis/go-redis/v9 v9.0.5 // indirect
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlite v1.5.2
