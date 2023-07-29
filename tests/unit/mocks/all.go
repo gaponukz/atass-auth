@@ -3,7 +3,7 @@ package mocks
 import (
 	"auth/src/dto"
 	"auth/src/entities"
-	"errors"
+	"auth/src/errors"
 	"fmt"
 )
 
@@ -27,7 +27,7 @@ func (m *temporaryStorageMock) Delete(pair dto.GmailWithKeyPairDTO) error {
 			return nil
 		}
 	}
-	return errors.New("pair not found")
+	return fmt.Errorf("404")
 }
 
 func (m *temporaryStorageMock) GetByUniqueKey(key string) (dto.GmailWithKeyPairDTO, error) {
@@ -36,7 +36,7 @@ func (m *temporaryStorageMock) GetByUniqueKey(key string) (dto.GmailWithKeyPairD
 			return user, nil
 		}
 	}
-	return dto.GmailWithKeyPairDTO{}, errors.New("pair not found")
+	return dto.GmailWithKeyPairDTO{}, fmt.Errorf("404")
 }
 
 type mockStorage struct {
@@ -61,7 +61,7 @@ func (m *mockStorage) Update(userToUpdate entities.UserEntity) error {
 		}
 	}
 
-	return fmt.Errorf("user %s not found", userToUpdate.ID)
+	return errors.ErrUserNotFound
 }
 
 func (m *mockStorage) ByID(id string) (entities.UserEntity, error) {
@@ -71,7 +71,7 @@ func (m *mockStorage) ByID(id string) (entities.UserEntity, error) {
 		}
 	}
 
-	return entities.UserEntity{}, errors.New("not found")
+	return entities.UserEntity{}, errors.ErrUserNotFound
 }
 
 func NewMockStorage() *mockStorage {
