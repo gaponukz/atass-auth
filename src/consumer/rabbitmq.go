@@ -70,13 +70,15 @@ func (r routesEventsListener) Listen() {
 			err := json.Unmarshal(d.Body, &data)
 			if err != nil {
 				fmt.Printf("Error parsing JSON: %v\n", err)
-				return
 			}
 
 			routeID := data["routeId"].(string)
 			passengerID := data["passanger"].(map[string]interface{})["id"].(string)
 
-			r.service.AddRoute(passengerID, routeID)
+			err = r.service.AddRoute(passengerID, routeID)
+			if err != nil {
+				fmt.Printf("Error adding route: %v\n", err)
+			}
 		}
 	}()
 	<-forever
