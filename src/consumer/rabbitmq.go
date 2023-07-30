@@ -72,8 +72,18 @@ func (r routesEventsListener) Listen() {
 				fmt.Printf("Error parsing JSON: %v\n", err)
 			}
 
-			routeID := data["routeId"].(string)
-			passengerID := data["passanger"].(map[string]interface{})["id"].(string)
+			routeID, ok := data["routeId"].(string)
+			if !ok {
+				fmt.Printf("Error parsing JSON: no 'routeId' field\n")
+			}
+			passenger, ok := data["passenger"].(map[string]interface{})
+			if !ok {
+				fmt.Printf("Error parsing JSON: no 'passenger' field\n")
+			}
+			passengerID, ok := passenger["id"].(string)
+			if !ok {
+				fmt.Printf("Error parsing JSON: no 'passenger.id' field\n")
+			}
 
 			err = r.service.AddRoute(passengerID, routeID)
 			if err != nil {
