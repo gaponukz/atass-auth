@@ -31,7 +31,7 @@ func NewRoutesEventsListener(s routesService, rabbitUrl string) (*routesEventsLi
 	}
 
 	err = ch.QueueBind(
-		"payments",
+		"passenger_payments",
 		"",
 		"payments_exchange",
 		false,
@@ -43,13 +43,13 @@ func NewRoutesEventsListener(s routesService, rabbitUrl string) (*routesEventsLi
 		return nil, err
 	}
 	msgs, err := ch.Consume(
-		"payments", // queue
-		"",         // consumer
-		true,       // auto-ack
-		false,      // exclusive
-		false,      // no-local
-		false,      // no-wait
-		nil,        // args
+		"passenger_payments", // queue
+		"",                   // consumer
+		true,                 // auto-ack
+		false,                // exclusive
+		false,                // no-local
+		false,                // no-wait
+		nil,                  // args
 	)
 	if err != nil {
 		_ = ch.Close()
