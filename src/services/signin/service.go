@@ -35,7 +35,3 @@ func (s signinService) Login(gmail, password string) (entities.UserEntity, error
 
 	return user, nil
 }
-
-func (s signinService) UserProfile(id string) (entities.UserEntity, error) {
-	return s.db.ByID(id)
-}

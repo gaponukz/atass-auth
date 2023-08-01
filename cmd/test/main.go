@@ -29,7 +29,7 @@ func main() {
 	sendResetPasswordLetter := func(gmail, key string) error { return nil }
 	generateCode := func() string { return "12345" }
 
-	signinService := signin.NewSigninService(userStorage, hash)
+	signinService := logger.NewLogSigninServiceDecorator(signin.NewSigninService(userStorage, hash), logging)
 	signupService := logger.NewLogSignupServiceDecorator(signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, generateCode, hash), logging)
 	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, generateCode)
 	settingsService := logger.NewLogSettingsServiceDecorator(settings.NewSettingsService(userStorage), logging)
