@@ -10,6 +10,7 @@ import (
 	"auth/src/security"
 	"auth/src/services/passreset"
 	"auth/src/services/settings"
+	"auth/src/services/show_routes"
 	"auth/src/services/signin"
 	"auth/src/services/signup"
 	"auth/src/storage"
@@ -40,8 +41,9 @@ func main() {
 	signupService := signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, security.GenerateCode, hash)
 	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, security.GenerateCode)
 	settingsService := settings.NewSettingsService(userStorage)
+	showRoutesService := show_routes.NewShowRoutesService(userStorage)
 
-	controller := controller.NewController(setting.JwtSecret, signinService, signupService, passwordResetingService, settingsService)
+	controller := controller.NewController(setting.JwtSecret, signinService, signupService, passwordResetingService, settingsService, showRoutesService)
 
 	server := web.SetupServer(controller)
 

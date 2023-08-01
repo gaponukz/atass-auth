@@ -56,6 +56,7 @@ func getMuxFromController(c *controller.Controller) *http.ServeMux {
 	httpRoute.HandleFunc("/logout", c.Logout)
 	httpRoute.HandleFunc("/refresh", c.Refresh)
 
+	httpRoute.HandleFunc("/getUserRoutes", c.ShowUserRoutes)
 	httpRoute.HandleFunc("/getUserInfo", c.GetUserInfo)
 	httpRoute.HandleFunc("/updateUserInfo", requiredMethod(c.UpdateUserInfo, http.MethodPost))
 

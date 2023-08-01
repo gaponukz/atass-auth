@@ -22,6 +22,10 @@ type settingsService interface {
 	UpdateWithFields(id string, fields dto.UpdateUserDTO) error
 }
 
+type showUserRoutesService interface {
+	ShowRoutes(id string) ([]string, error)
+}
+
 type resetPasswordService interface {
 	NotifyUser(string) (string, error)
 	AddUserToTemporaryStorage(dto.GmailWithKeyPairDTO) error
@@ -30,22 +34,24 @@ type resetPasswordService interface {
 }
 
 type Controller struct {
-	jwtSecret            string
-	signinService        signinService
-	signupService        signupService
-	resetPasswordService resetPasswordService
-	settingsService      settingsService
+	jwtSecret             string
+	signinService         signinService
+	signupService         signupService
+	resetPasswordService  resetPasswordService
+	settingsService       settingsService
+	showUserRoutesService showUserRoutesService
 }
 
 func NewController(jwtSecret string, signinService signinService, signupService signupService,
-	resetPasswordService resetPasswordService, settingsService settingsService) *Controller {
+	resetPasswordService resetPasswordService, settingsService settingsService, showUserRoutesService showUserRoutesService) *Controller {
 
 	return &Controller{
-		jwtSecret:            jwtSecret,
-		signinService:        signinService,
-		signupService:        signupService,
-		resetPasswordService: resetPasswordService,
-		settingsService:      settingsService,
+		jwtSecret:             jwtSecret,
+		signinService:         signinService,
+		signupService:         signupService,
+		resetPasswordService:  resetPasswordService,
+		settingsService:       settingsService,
+		showUserRoutesService: showUserRoutesService,
 	}
 }
 
@@ -321,4 +327,26 @@ func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *
 		Value:   newToken,
 		Expires: expirationTime,
 	})
+}
+
+func (c Controller) ShowUserRoutes(responseWriter http.ResponseWriter, request *http.Request) {
+	userInfo, status := userInfoFromRequest(request, c.jwtSecret)
+	if status != http.StatusOK {
+		responseWriter.WriteHeader(int(status))
+		return
+	}
+
+	routes, err := c.showUserRoutesService.ShowRoutes(userInfo.ID)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	jsonBytes, err := dumpsJson(routes)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	responseWriter.Header().Set("Content-Type", "application/json")
+	responseWriter.Write(jsonBytes)
 }
