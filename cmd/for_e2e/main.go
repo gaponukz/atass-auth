@@ -40,23 +40,10 @@ func main() {
 	signupService := logger.NewLogSignupServiceDecorator(signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, generateCode, hash), logging)
 	passwordResetingService := logger.NewLogResetPasswordServiceDecorator(passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, generateCode), logging)
 	settingsService := logger.NewLogSettingsServiceDecorator(settings.NewSettingsService(userStorage), logging)
-  showRoutesService := show_routes.NewShowRoutesService(userStorage)
-
+	showRoutesService := show_routes.NewShowRoutesService(userStorage)
 
 	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService, showRoutesService)
 	server := web.SetupTestServer(controller)
-
-	go func() {
-		time.Sleep(time.Second * 3)
-		users, _ := userStorage.ReadAll()
-
-		if len(users) != 0 {
-			user := users[0]
-
-			user.PurchasedRouteIds = append(user.PurchasedRouteIds, "12-34-5")
-			_ = userStorage.Update(user)
-		}
-	}()
 
 	err = server.ListenAndServe()
 	if err != nil {

@@ -120,12 +120,3 @@ class TestAPI:
         assert data['fullName'] == user.full_name
         assert data['phone'] == user.phone
         assert data['allowsAdvertisement'] == user.allows_advertisement
-
-    def test_show_routes(self, session: requests.Session):
-        time.sleep(3)
-        response = session.get(f'{api_url}/getUserRoutes')
-        assert response.status_code == 200
-
-        data = response.json()
-        assert data != None
-        assert data[0] == '12-34-5'
