@@ -16,6 +16,10 @@ type logRoutesService struct {
 	l logger
 }
 
+func NewLogAddRouteDecorator(s routesService, l logger) logRoutesService {
+	return logRoutesService{s: s, l: l}
+}
+
 func (s logRoutesService) AddRoute(userID, routeID string) error {
 	err := s.s.AddRoute(userID, routeID)
 	if err != nil {
