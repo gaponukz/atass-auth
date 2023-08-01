@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"auth/src/controller"
+	"auth/src/logger"
 	"auth/src/services/passreset"
 	"auth/src/services/settings"
 	"auth/src/services/show_routes"
@@ -29,16 +30,18 @@ func main() {
 	resetPassStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "reset")
 	userStorage := storage.NewUserJsonFileStorage(databaseFilename)
 
+	logging := logger.NewConsoleLogger()
 	hash := func(s string) string { return s }
 	sendRegisterGmail := func(gmail, key string) error { return nil }
 	sendResetPasswordLetter := func(gmail, key string) error { return nil }
 	generateCode := func() string { return "12345" }
 
-	signinService := signin.NewSigninService(userStorage, hash)
-	signupService := signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, generateCode, hash)
-	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, generateCode)
-	settingsService := settings.NewSettingsService(userStorage)
-	showRoutesService := show_routes.NewShowRoutesService(userStorage)
+	signinService := logger.NewLogSigninServiceDecorator(signin.NewSigninService(userStorage, hash), logging)
+	signupService := logger.NewLogSignupServiceDecorator(signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, generateCode, hash), logging)
+	passwordResetingService := logger.NewLogResetPasswordServiceDecorator(passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, generateCode), logging)
+	settingsService := logger.NewLogSettingsServiceDecorator(settings.NewSettingsService(userStorage), logging)
+  showRoutesService := show_routes.NewShowRoutesService(userStorage)
+
 
 	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService, showRoutesService)
 	server := web.SetupTestServer(controller)

@@ -10,7 +10,6 @@ import (
 
 type signinService interface {
 	Login(string, string) (entities.UserEntity, error)
-	UserProfile(string) (entities.UserEntity, error)
 }
 
 type signupService interface {
