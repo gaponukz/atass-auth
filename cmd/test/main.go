@@ -30,7 +30,7 @@ func main() {
 	generateCode := func() string { return "12345" }
 
 	signinService := signin.NewSigninService(userStorage, hash)
-	signupService := signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, generateCode, hash)
+	signupService := logger.NewLogSignupServiceDecorator(signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, generateCode, hash), logging)
 	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, generateCode)
 	settingsService := logger.NewLogSettingsServiceDecorator(settings.NewSettingsService(userStorage), logging)
 	routesService := logger.NewLogAddRouteDecorator(routes.NewRoutesService(userStorage), logging)
