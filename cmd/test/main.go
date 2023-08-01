@@ -11,6 +11,7 @@ import (
 	"auth/src/services/passreset"
 	"auth/src/services/routes"
 	"auth/src/services/settings"
+	"auth/src/services/show_routes"
 	"auth/src/services/signin"
 	"auth/src/services/signup"
 	"auth/src/storage"
@@ -34,8 +35,8 @@ func main() {
 	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, generateCode)
 	settingsService := logger.NewLogSettingsServiceDecorator(settings.NewSettingsService(userStorage), logging)
 	routesService := logger.NewLogAddRouteDecorator(routes.NewRoutesService(userStorage), logging)
-
-	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService)
+	showRoutesService := show_routes.NewShowRoutesService(userStorage)
+	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService, showRoutesService)
 	server := web.SetupTestServer(controller)
 
 	routesEventsListener, err := consumer.NewRoutesEventsListener(routesService, appSettings.RabbitUrl)
