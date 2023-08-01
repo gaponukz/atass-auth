@@ -43,6 +43,18 @@ func main() {
 	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService, showRoutesService)
 	server := web.SetupTestServer(controller)
 
+	go func() {
+		time.Sleep(time.Second * 3)
+		users, _ := userStorage.ReadAll()
+
+		if len(users) != 0 {
+			user := users[0]
+
+			user.PurchasedRouteIds = append(user.PurchasedRouteIds, "12-34-5")
+			_ = userStorage.Update(user)
+		}
+	}()
+
 	err = server.ListenAndServe()
 	if err != nil {
 		fmt.Printf("Server error: %v\n", err)
