@@ -85,10 +85,7 @@ func (r routesEventsListener) Listen() {
 				fmt.Printf("Error parsing JSON: no 'passenger.id' field\n")
 			}
 
-			err = r.service.AddRoute(passengerID, routeID)
-			if err != nil {
-				fmt.Printf("Error adding route: %v\n", err)
-			}
+			_ = r.service.AddRoute(passengerID, routeID)
 		}
 	}()
 	<-forever
