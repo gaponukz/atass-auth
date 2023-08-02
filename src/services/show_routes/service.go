@@ -14,7 +14,7 @@ func NewShowRoutesService(db db) service {
 	return service{db: db}
 }
 
-func (s service) ShowRoutes(id string) ([]string, error) {
+func (s service) ShowRoutes(id string) ([]entities.Path, error) {
 	user, err := s.db.ByID(id)
 	if err != nil {
 		return nil, err

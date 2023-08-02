@@ -1,9 +1,12 @@
 package logger
 
-import "fmt"
+import (
+	"auth/src/entities"
+	"fmt"
+)
 
 type routesService interface {
-	AddRoute(userID, routeID string) error
+	AddRoute(string, entities.Path) error
 }
 
 type logger interface {
@@ -20,12 +23,12 @@ func NewLogAddRouteDecorator(s routesService, l logger) logRoutesService {
 	return logRoutesService{s: s, l: l}
 }
 
-func (s logRoutesService) AddRoute(userID, routeID string) error {
-	err := s.s.AddRoute(userID, routeID)
+func (s logRoutesService) AddRoute(userID string, path entities.Path) error {
+	err := s.s.AddRoute(userID, path)
 	if err != nil {
-		s.l.Error(fmt.Sprintf("Can not add route %s to user %s: %v", routeID, userID, err))
+		s.l.Error(fmt.Sprintf("Can not add route %s to user %s: %v", path.RootRouteID, userID, err))
 	}
 
-	s.l.Info(fmt.Sprintf("Add route %s to user %s", routeID, userID))
+	s.l.Info(fmt.Sprintf("Add route %s to user %s", path.RootRouteID, userID))
 	return nil
 }

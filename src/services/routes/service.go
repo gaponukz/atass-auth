@@ -2,7 +2,6 @@ package routes
 
 import (
 	"auth/src/entities"
-	"auth/src/errors"
 )
 
 type db interface {
@@ -18,41 +17,18 @@ func NewRoutesService(db db) routesService {
 	return routesService{db: db}
 }
 
-func (r routesService) AddRoute(userID, routeID string) error {
+func (r routesService) AddRoute(userID string, path entities.Path) error {
 	user, err := r.db.ByID(userID)
 	if err != nil {
 		return err
 	}
 
-	user.PurchasedRouteIds = append(user.PurchasedRouteIds, routeID)
+	user.PurchasedRouteIds = append(user.PurchasedRouteIds, path)
 
 	return r.db.Update(user)
 }
 
-func (r routesService) DeleteRoute(userID, routeID string) error {
-	user, err := r.db.ByID(userID)
-	if err != nil {
-		return err
-	}
-
-	index := -1
-	for i, id := range user.PurchasedRouteIds {
-		if id == routeID {
-			index = i
-			break
-		}
-	}
-
-	if index == -1 {
-		return errors.ErrRouteNotFound
-	}
-
-	user.PurchasedRouteIds = append(user.PurchasedRouteIds[:index], user.PurchasedRouteIds[index+1:]...)
-
-	return r.db.Update(user)
-}
-
-func (r routesService) DisplayUserRoutes(userID string) ([]string, error) {
+func (r routesService) DisplayUserRoutes(userID string) ([]entities.Path, error) {
 	user, err := r.db.ByID(userID)
 	if err != nil {
 		return nil, err

@@ -23,7 +23,7 @@ type settingsService interface {
 }
 
 type showUserRoutesService interface {
-	ShowRoutes(id string) ([]string, error)
+	ShowRoutes(id string) ([]entities.Path, error)
 }
 
 type resetPasswordService interface {

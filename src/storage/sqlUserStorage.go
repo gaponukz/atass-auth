@@ -2,8 +2,8 @@ package storage
 
 import (
 	"auth/src/entities"
+	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
@@ -25,6 +25,13 @@ type sqlUserStorage struct {
 }
 
 func fromProxyToUser(p dbProxyUser) entities.UserEntity {
+	var pathes []entities.Path
+
+	err := json.Unmarshal([]byte(p.PurchasedRouteIds), &pathes)
+	if err != nil {
+		pathes = nil
+	}
+
 	return entities.UserEntity{
 		ID: p.ID,
 		User: entities.User{
@@ -33,12 +40,21 @@ func fromProxyToUser(p dbProxyUser) entities.UserEntity {
 			Phone:               p.Phone,
 			FullName:            p.FullName,
 			AllowsAdvertisement: p.AllowsAdvertisement,
-			PurchasedRouteIds:   strings.Split(p.PurchasedRouteIds, ","),
+			PurchasedRouteIds:   pathes,
 		},
 	}
 }
 
 func fromUserToProxy(u entities.UserEntity) dbProxyUser {
+	var pathes string
+
+	bPathes, err := json.Marshal(u.PurchasedRouteIds)
+	if err != nil {
+		pathes = "[]"
+	} else {
+		pathes = string(bPathes)
+	}
+
 	return dbProxyUser{
 		ID:                  u.ID,
 		Gmail:               u.Gmail,
@@ -46,7 +62,7 @@ func fromUserToProxy(u entities.UserEntity) dbProxyUser {
 		Phone:               u.Phone,
 		FullName:            u.FullName,
 		AllowsAdvertisement: u.AllowsAdvertisement,
-		PurchasedRouteIds:   strings.Join(u.PurchasedRouteIds, ","),
+		PurchasedRouteIds:   pathes,
 	}
 }
 
