@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"auth/src/entities"
 	"encoding/json"
 	"fmt"
 
@@ -8,7 +9,7 @@ import (
 )
 
 type routesService interface {
-	AddRoute(userID, routeID string) error
+	AddRoute(userID string, path entities.Path) error
 }
 
 type routesEventsListener struct {
@@ -84,8 +85,16 @@ func (r routesEventsListener) Listen() {
 			if !ok {
 				fmt.Printf("Error parsing JSON: no 'passenger.id' field\n")
 			}
+			moveFrom, ok := passenger["movingFromId"].(string)
+			if !ok {
+				fmt.Printf("Error parsing JSON: no 'passenger.movingFromId' field\n")
+			}
+			moveTo, ok := passenger["movingTowardsId"].(string)
+			if !ok {
+				fmt.Printf("Error parsing JSON: no 'passenger.movingTowardsId' field\n")
+			}
 
-			_ = r.service.AddRoute(passengerID, routeID)
+			_ = r.service.AddRoute(passengerID, entities.Path{RootRouteID: routeID, MoveFromID: moveFrom, MoveToID: moveTo})
 		}
 	}()
 	<-forever
