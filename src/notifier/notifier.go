@@ -1,6 +1,7 @@
 package notifier
 
 import (
+	"fmt"
 	"net/smtp"
 	"os"
 	"strings"
@@ -31,6 +32,12 @@ func SendEmailNoificationFactory(sender SendFrom, title string, templatePath str
 		)
 
 		auth := smtp.PlainAuth("", sender.Gmail, sender.Password, "smtp.gmail.com")
-		return smtp.SendMail("smtp.gmail.com:587", auth, sender.Gmail, []string{sendToGmail}, message)
+
+		err := smtp.SendMail("smtp.gmail.com:587", auth, sender.Gmail, []string{sendToGmail}, message)
+		if err != nil {
+			return fmt.Errorf("Can not send letter: %v", err)
+		}
+
+		return nil
 	}
 }

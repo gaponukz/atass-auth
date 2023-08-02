@@ -101,7 +101,7 @@ func (repo sqlUserStorage) Create(user entities.User) (entities.UserEntity, erro
 
 	result := repo.db.Create(&proxy)
 	if result.Error != nil {
-		return entities.UserEntity{}, result.Error
+		return entities.UserEntity{}, fmt.Errorf("Can not create user %s: %v", user.Gmail, result.Error)
 	}
 
 	return entity, nil
@@ -112,7 +112,7 @@ func (repo sqlUserStorage) ReadAll() ([]entities.UserEntity, error) {
 
 	result := repo.db.Find(&proxies)
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, fmt.Errorf("Can not get all users: %v", result.Error)
 	}
 
 	users := make([]entities.UserEntity, len(proxies))
@@ -129,7 +129,7 @@ func (repo sqlUserStorage) ByID(id string) (entities.UserEntity, error) {
 
 	result := repo.db.Where("id = ?", id).First(&proxy)
 	if result.Error != nil {
-		return entities.UserEntity{}, result.Error
+		return entities.UserEntity{}, fmt.Errorf("Can not get by id %s: %v", id, result.Error)
 	}
 
 	return fromProxyToUser(proxy), nil
@@ -140,7 +140,7 @@ func (repo sqlUserStorage) Update(userToUpdate entities.UserEntity) error {
 
 	result := repo.db.Save(&proxy)
 	if result.Error != nil {
-		return result.Error
+		return fmt.Errorf("Can not update %s: %v", userToUpdate.ID, result.Error)
 	}
 
 	return nil
@@ -150,7 +150,7 @@ func (repo sqlUserStorage) Delete(id string) error {
 	result := repo.db.Where("id = ?", id).Delete(&dbProxyUser{})
 
 	if result.Error != nil {
-		return result.Error
+		return fmt.Errorf("Can not delete %s: %v", id, result.Error)
 	}
 
 	return nil
