@@ -153,6 +153,20 @@ This document provides an overview of the API endpoints and request bodies for t
     "rememberHim": true
 }
 ```
+### Get user's routes.
+- URL: `/getUserRoutes`
+- Method: `GET`
+- Description: Get list of user's routes.
+- Response:
+```json
+[
+    {
+        "rootRouteId": "1",
+        "movingFromId": "11",
+        "movingTowardsId": "12",
+    }
+]
+```
 ### Update user data.
 - URL: `/updateUserInfo`
 - Method: `POST`
