@@ -109,6 +109,11 @@ func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Req
 
 	key, err := c.signupService.SendGeneratedCode(gmail)
 	if err != nil {
+		if err == errors.ErrUserAlreadyExists {
+			responseWriter.WriteHeader(http.StatusConflict)
+			return
+		}
+
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -118,11 +123,6 @@ func (c Controller) Signup(responseWriter http.ResponseWriter, request *http.Req
 		Key:   key,
 	})
 	if err != nil {
-		if err == errors.ErrUserAlreadyExists {
-			responseWriter.WriteHeader(http.StatusConflict)
-			return
-		}
-
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}

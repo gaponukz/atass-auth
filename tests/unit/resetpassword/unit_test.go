@@ -3,6 +3,7 @@ package resetpassword
 import (
 	"auth/src/dto"
 	"auth/src/entities"
+	"auth/src/errors"
 	"auth/src/services/passreset"
 	"auth/src/utils"
 	"auth/tests/unit/mocks"
@@ -12,17 +13,29 @@ import (
 func TestNotifyUser(t *testing.T) {
 	const expectedCode = "12345"
 
+	sm := mocks.NewMockStorage()
 	notify := func(gmail string, key string) error { return nil }
 	sendCode := func() string { return expectedCode }
 	hash := func(s string) string { return s }
 
-	s := passreset.NewResetPasswordService(nil, nil, notify, hash, sendCode)
+	s := passreset.NewResetPasswordService(sm, nil, notify, hash, sendCode)
+
+	_, err := s.NotifyUser("user@gmail.com")
+	if err != errors.ErrUserNotFound {
+		t.Error("Can notify not registered gmail")
+	}
+
+	testUser := entities.User{Gmail: "user@gmail.com"}
+
+	_, err = sm.Create(testUser)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	code, err := s.NotifyUser("user@gmail.com")
 	if err != nil {
-		t.Errorf("Error sending generated code: %v", err)
+		t.Error(err.Error())
 	}
-
 	if code != expectedCode {
 		t.Errorf("Expected code %s, got %s", expectedCode, code)
 	}
