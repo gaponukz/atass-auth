@@ -43,26 +43,26 @@ type registrationService struct {
 }
 
 func (s registrationService) SendGeneratedCode(userGmail string) (string, error) {
+	users, err := s.userStorage.ReadAll()
+	if err != nil {
+		return "", err
+	}
+
+	isExist := utils.IsExist(users, func(u entities.UserEntity) bool {
+		return u.Gmail == userGmail
+	})
+
+	if isExist {
+		return "", errors.ErrUserAlreadyExists
+	}
+
 	key := s.generateCode()
-	err := s.notify(userGmail, key) // TODO: make gorutine with 5 sec deadline context
+	err = s.notify(userGmail, key) // TODO: 5 sec deadline context
 
 	return key, err
 }
 
 func (s registrationService) AddUserToTemporaryStorage(user dto.GmailWithKeyPairDTO) error {
-	users, err := s.userStorage.ReadAll()
-	if err != nil {
-		return err
-	}
-
-	isExist := utils.IsExist(users, func(u entities.UserEntity) bool {
-		return u.Gmail == user.Gmail
-	})
-
-	if isExist {
-		return errors.ErrUserAlreadyExists
-	}
-
 	return s.futureUserStorage.Create(user)
 }
 

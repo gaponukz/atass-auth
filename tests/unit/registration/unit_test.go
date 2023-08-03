@@ -3,6 +3,7 @@ package registration
 import (
 	"auth/src/dto"
 	"auth/src/entities"
+	"auth/src/errors"
 	"auth/src/services/signup"
 	"auth/src/utils"
 	"auth/tests/unit/mocks"
@@ -12,12 +13,23 @@ import (
 func TestSendGeneratedCode(t *testing.T) {
 	const expectedCode = "12345"
 
+	sm := mocks.NewMockStorage()
 	notify := func(gmail string, key string) error { return nil }
 	generateCode := func() string { return expectedCode }
 	hash := func(s string) string { return s }
-	s := signup.NewRegistrationService(nil, nil, notify, generateCode, hash)
+	s := signup.NewRegistrationService(sm, nil, notify, generateCode, hash)
 
-	code, err := s.SendGeneratedCode("user@gmail.com")
+	_, err := sm.Create(entities.User{Gmail: "user@gmail.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = s.SendGeneratedCode("user@gmail.com")
+	if err != errors.ErrUserAlreadyExists {
+		t.Error("successfully added already registered user")
+	}
+
+	code, err := s.SendGeneratedCode("user2@gmail.com")
 	if err != nil {
 		t.Errorf("Error sending generated code: %v", err)
 	}
@@ -45,23 +57,6 @@ func TestAddUserToTemporaryStorage(t *testing.T) {
 
 	if user.Gmail != testUser.Gmail {
 		t.Errorf("user in temporary expected %s, got %s", testUser.Gmail, user.Gmail)
-	}
-}
-
-func TestAddAlreadyRegisteredUserToTemporaryStorage(t *testing.T) {
-	sm := mocks.NewMockStorage()
-	tsm := mocks.NewTemporaryStorageMock()
-	s := signup.NewRegistrationService(sm, tsm, nil, nil, nil)
-	testUser := dto.GmailWithKeyPairDTO{Gmail: "user@gmail.com", Key: "12345"}
-
-	_, err := sm.Create(entities.User{Gmail: "user@gmail.com"})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = s.AddUserToTemporaryStorage(testUser)
-	if err == nil {
-		t.Error("successfully added already registered user")
 	}
 }
 
