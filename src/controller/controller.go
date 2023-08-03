@@ -214,6 +214,10 @@ func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *h
 
 	code, err := c.resetPasswordService.NotifyUser(gmail)
 	if err != nil {
+		if err == errors.ErrUserNotFound {
+			responseWriter.WriteHeader(http.StatusNotFound)
+			return
+		}
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -223,10 +227,6 @@ func (c Controller) ResetPassword(responseWriter http.ResponseWriter, request *h
 		Key:   code,
 	})
 	if err != nil {
-		if err == errors.ErrUserNotFound {
-			responseWriter.WriteHeader(http.StatusNotFound)
-			return
-		}
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
