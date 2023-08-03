@@ -43,26 +43,25 @@ func NewResetPasswordService(
 }
 
 func (s resetPasswordService) NotifyUser(userGmail string) (string, error) {
+	users, err := s.userStorage.ReadAll()
+	if err != nil {
+		return "", err
+	}
+
+	isGmailExist := utils.IsExist(users, func(u entities.UserEntity) bool {
+		return u.Gmail == userGmail
+	})
+
+	if !isGmailExist {
+		return "", errors.ErrUserNotFound
+	}
 	key := s.generateCode()
-	err := s.notify(userGmail, key)
+	err = s.notify(userGmail, key)
 
 	return key, err
 }
 
 func (s resetPasswordService) AddUserToTemporaryStorage(user dto.GmailWithKeyPairDTO) error {
-	users, err := s.userStorage.ReadAll()
-	if err != nil {
-		return err
-	}
-
-	isGmailExist := utils.IsExist(users, func(u entities.UserEntity) bool {
-		return u.Gmail == user.Gmail
-	})
-
-	if !isGmailExist {
-		return errors.ErrUserNotFound
-	}
-
 	return s.temporaryStorage.Create(user)
 }
 
