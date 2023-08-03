@@ -10,7 +10,7 @@ import (
 
 func GenerateCode() string {
 	var n uint32
-	binary.Read(rand.Reader, binary.BigEndian, &n)
+	_ = binary.Read(rand.Reader, binary.BigEndian, &n)
 	code := n%900000 + 100000
 	return fmt.Sprintf("%d", code)
 }

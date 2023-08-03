@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/smtp"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -19,7 +20,7 @@ func SendEmailNoificationFactory(sender SendFrom, title string, templatePath str
 		return nil
 	}
 
-	data, err := os.ReadFile(templatePath)
+	data, err := os.ReadFile(filepath.Join("", filepath.Clean(templatePath)))
 	if err != nil {
 		return nil
 	}
