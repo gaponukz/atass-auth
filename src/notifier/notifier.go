@@ -1,9 +1,9 @@
 package notifier
 
 import (
-	"fmt"
 	"net/smtp"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -15,7 +15,11 @@ type SendFrom struct {
 }
 
 func SendEmailNoificationFactory(sender SendFrom, title string, templatePath string) Notifier {
-	data, err := os.ReadFile(templatePath)
+	if !isValidTemplatePath(templatePath) {
+		return nil
+	}
+
+	data, err := os.ReadFile(filepath.Join("", filepath.Clean(templatePath)))
 	if err != nil {
 		return nil
 	}
@@ -33,11 +37,10 @@ func SendEmailNoificationFactory(sender SendFrom, title string, templatePath str
 
 		auth := smtp.PlainAuth("", sender.Gmail, sender.Password, "smtp.gmail.com")
 
-		err := smtp.SendMail("smtp.gmail.com:587", auth, sender.Gmail, []string{sendToGmail}, message)
-		if err != nil {
-			return fmt.Errorf("Can not send letter: %v", err)
-		}
-
-		return nil
+		return smtp.SendMail("smtp.gmail.com:587", auth, sender.Gmail, []string{sendToGmail}, message)
 	}
+}
+
+func isValidTemplatePath(path string) bool {
+	return strings.HasSuffix(path, ".html") || strings.HasSuffix(path, ".htm")
 }

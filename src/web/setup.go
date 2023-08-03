@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 type routerFunc = func(rw http.ResponseWriter, r *http.Request)
@@ -67,8 +68,9 @@ func SetupServer(c *controller.Controller) *http.Server {
 	handler := getMuxFromController(c)
 
 	return &http.Server{
-		Addr:    ":8080",
-		Handler: loggingMiddleware(handler),
+		Addr:              ":8080",
+		Handler:           loggingMiddleware(handler),
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 }
 
@@ -77,7 +79,8 @@ func SetupTestServer(c *controller.Controller) *http.Server {
 
 	fmt.Println("Warning: this is test server, please do not use it in production.")
 	return &http.Server{
-		Addr:    ":8080",
-		Handler: enableCORS(loggingMiddleware(handler)),
+		Addr:              ":8080",
+		Handler:           enableCORS(loggingMiddleware(handler)),
+		ReadHeaderTimeout: 2 * time.Second,
 	}
 }

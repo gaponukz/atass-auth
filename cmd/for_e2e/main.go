@@ -18,12 +18,12 @@ import (
 
 func main() {
 	databaseFilename := "test.json"
-	err := os.WriteFile(databaseFilename, []byte("[]"), 0644)
+	err := os.WriteFile(databaseFilename, []byte("[]"), 0600)
 	if err != nil {
 		panic(err)
 	}
 	defer func() {
-		os.Remove(databaseFilename)
+		_ = os.Remove(databaseFilename)
 	}()
 
 	futureUserStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "register")
