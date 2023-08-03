@@ -1,14 +1,18 @@
 package security
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
-	"math/rand"
-	"strconv"
+	"fmt"
 )
 
 func GenerateCode() string {
-	return strconv.Itoa(rand.Intn(900000) + 100000)
+	var n uint32
+	binary.Read(rand.Reader, binary.BigEndian, &n)
+	code := n%900000 + 100000
+	return fmt.Sprintf("%d", code)
 }
 
 func Sha256WithSecretFactory(secret string) func(string) string {

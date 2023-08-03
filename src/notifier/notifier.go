@@ -15,6 +15,10 @@ type SendFrom struct {
 }
 
 func SendEmailNoificationFactory(sender SendFrom, title string, templatePath string) Notifier {
+	if !isValidTemplatePath(templatePath) {
+		return nil
+	}
+
 	data, err := os.ReadFile(templatePath)
 	if err != nil {
 		return nil
@@ -40,4 +44,8 @@ func SendEmailNoificationFactory(sender SendFrom, title string, templatePath str
 
 		return nil
 	}
+}
+
+func isValidTemplatePath(path string) bool {
+	return strings.HasSuffix(path, ".html") || strings.HasSuffix(path, ".htm")
 }
