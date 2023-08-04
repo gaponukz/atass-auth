@@ -18,7 +18,7 @@ type userSession struct {
 	secret string
 }
 
-func NewUserSession(secret string) userSession {
+func NewSessionService(secret string) userSession {
 	return userSession{secret: secret}
 }
 

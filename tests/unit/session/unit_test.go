@@ -9,7 +9,7 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	service := session.NewUserSession("test")
+	service := session.NewSessionService("test")
 	payload := dto.CreateTokenDTO{RememberHim: true, UserInfoDTO: dto.UserInfoDTO{ID: "123"}}
 
 	token, expir, err := service.CreateToken(payload)
@@ -31,7 +31,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestGetInfo(t *testing.T) {
-	service := session.NewUserSession("test")
+	service := session.NewSessionService("test")
 	payload := dto.CreateTokenDTO{RememberHim: true, UserInfoDTO: dto.UserInfoDTO{ID: "123"}}
 
 	token, _, err := service.CreateToken(payload)
@@ -54,7 +54,7 @@ func TestGetInfo(t *testing.T) {
 }
 
 func TestGetInfoWrongWithToken(t *testing.T) {
-	service := session.NewUserSession("test")
+	service := session.NewSessionService("test")
 	payload := dto.CreateTokenDTO{
 		RememberHim: true,
 		UserInfoDTO: dto.UserInfoDTO{
@@ -83,7 +83,7 @@ func TestGetInfoWrongWithToken(t *testing.T) {
 }
 
 func TestUpdateToken(t *testing.T) {
-	service := session.NewUserSession("test")
+	service := session.NewSessionService("test")
 	payload := dto.CreateTokenDTO{RememberHim: true, UserInfoDTO: dto.UserInfoDTO{Phone: "123"}}
 
 	token, _, err := service.CreateToken(payload)

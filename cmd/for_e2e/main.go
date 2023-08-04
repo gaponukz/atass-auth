@@ -8,6 +8,7 @@ import (
 	"auth/src/controller"
 	"auth/src/logger"
 	"auth/src/services/passreset"
+	"auth/src/services/session"
 	"auth/src/services/settings"
 	"auth/src/services/show_routes"
 	"auth/src/services/signin"
@@ -41,8 +42,9 @@ func main() {
 	passwordResetingService := logger.NewLogResetPasswordServiceDecorator(passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, generateCode), logging)
 	settingsService := logger.NewLogSettingsServiceDecorator(settings.NewSettingsService(userStorage), logging)
 	showRoutesService := show_routes.NewShowRoutesService(userStorage)
+	sessionService := session.NewSessionService("guaghf79gf")
 
-	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService, showRoutesService)
+	controller := controller.NewController(signinService, signupService, passwordResetingService, settingsService, showRoutesService, sessionService)
 	server := web.SetupTestServer(controller)
 
 	err = server.ListenAndServe()

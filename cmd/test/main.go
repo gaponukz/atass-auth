@@ -10,6 +10,7 @@ import (
 	"auth/src/logger"
 	"auth/src/services/passreset"
 	"auth/src/services/routes"
+	"auth/src/services/session"
 	"auth/src/services/settings"
 	"auth/src/services/show_routes"
 	"auth/src/services/signin"
@@ -36,7 +37,9 @@ func main() {
 	settingsService := logger.NewLogSettingsServiceDecorator(settings.NewSettingsService(userStorage), logging)
 	routesService := logger.NewLogAddRouteDecorator(routes.NewRoutesService(userStorage), logging)
 	showRoutesService := show_routes.NewShowRoutesService(userStorage)
-	controller := controller.NewController("", signinService, signupService, passwordResetingService, settingsService, showRoutesService)
+	sessionService := session.NewSessionService(appSettings.JwtSecret)
+
+	controller := controller.NewController(signinService, signupService, passwordResetingService, settingsService, showRoutesService, sessionService)
 	server := web.SetupTestServer(controller)
 
 	routesEventsListener, err := consumer.NewRoutesEventsListener(routesService, appSettings.RabbitUrl)
