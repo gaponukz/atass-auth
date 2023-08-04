@@ -41,7 +41,6 @@ type resetPasswordService interface {
 }
 
 type Controller struct {
-	jwtSecret             string
 	signinService         signinService
 	signupService         signupService
 	resetPasswordService  resetPasswordService
