@@ -47,6 +47,8 @@ jobs:
         run: go test ./tests/unit/signin
       - name: Run unit tests for user settings
         run: go test ./tests/unit/settings
+      - name: Run unit tests for session
+        run: go test ./tests/unit/session
 
   golangci:
     name: Run linter

@@ -1,6 +1,7 @@
 package session
 
 import (
+	"auth/src/dto"
 	"auth/src/errors"
 	"fmt"
 	"time"
@@ -8,21 +9,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type userInfoDTO struct {
-	ID                  string `json:"id"`
-	Gmail               string `json:"gmail"`
-	FullName            string `json:"fullName"`
-	Phone               string `json:"phone"`
-	AllowsAdvertisement bool   `json:"allowsAdvertisement"`
-}
-
-type createTokenDTO struct {
-	RememberHim bool `json:"rememberHim"`
-	userInfoDTO
-}
-
 type claims struct {
-	userInfoDTO
+	dto.UserInfoDTO
 	jwt.RegisteredClaims
 }
 
@@ -30,14 +18,18 @@ type userSession struct {
 	secret string
 }
 
-func (s userSession) CreateToken(data createTokenDTO) (string, time.Time, error) {
+func NewUserSession(secret string) userSession {
+	return userSession{secret: secret}
+}
+
+func (s userSession) CreateToken(data dto.CreateTokenDTO) (string, time.Time, error) {
 	expirationTime := s.getTokenExpirationTime(data.RememberHim)
 
 	claims := &claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
-		userInfoDTO: data.userInfoDTO,
+		UserInfoDTO: data.UserInfoDTO,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -49,60 +41,54 @@ func (s userSession) CreateToken(data createTokenDTO) (string, time.Time, error)
 	return tokenString, expirationTime, nil
 }
 
-func (s userSession) GetInfoFromToken(token string) (userInfoDTO, error) {
+func (s userSession) GetInfoFromToken(token string) (dto.UserInfoDTO, error) {
 	claims := &claims{}
 
 	jwtToken, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(s.secret), nil
 	})
 	if err != nil {
-		return userInfoDTO{}, fmt.Errorf("failed ParseWithClaims: %v", err)
+		return dto.UserInfoDTO{}, errors.ErrUserNotFound
 	}
 
 	if !jwtToken.Valid {
-		return userInfoDTO{}, errors.ErrUserNotFound
+		return dto.UserInfoDTO{}, errors.ErrUserNotFound
 	}
 
-	return claims.userInfoDTO, nil
+	return claims.UserInfoDTO, nil
 }
 
-func (s userSession) UpdateToken(token string, info userInfoDTO) (string, time.Time, error) {
-	_claims := &claims{}
-	tkn, err := jwt.ParseWithClaims(token, _claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(s.secret), nil
-	})
+func (s userSession) UpdateToken(token string, info dto.UpdateTokenDTO) (string, time.Time, error) {
+	oldClaims, err := s.getClaimsFromToken(token)
 	if err != nil {
-		return "", time.Time{}, fmt.Errorf("Can not ParseWithClaims: %v", err)
+		return "", time.Time{}, err
 	}
 
-	if !tkn.Valid {
-		return "", time.Time{}, errors.ErrUserNotFound
-	}
-
-	if time.Until(_claims.ExpiresAt.Time) > 30*time.Second {
-		return token, _claims.ExpiresAt.Time, nil
-	}
-
-	_claims = &claims{
-		userInfoDTO: userInfoDTO{
-			ID:                  _claims.userInfoDTO.ID,
-			Gmail:               _claims.userInfoDTO.Gmail,
+	newClaims := &claims{
+		UserInfoDTO: dto.UserInfoDTO{
+			ID:                  oldClaims.UserInfoDTO.ID,
+			Gmail:               oldClaims.UserInfoDTO.Gmail,
 			Phone:               info.Phone,
 			FullName:            info.FullName,
 			AllowsAdvertisement: info.AllowsAdvertisement,
 		},
-		RegisteredClaims: _claims.RegisteredClaims,
+		RegisteredClaims: oldClaims.RegisteredClaims,
 	}
 
-	_claims.ExpiresAt = jwt.NewNumericDate(_claims.ExpiresAt.Time)
-	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, _claims)
+	return s.genarateTokenFromClaims(newClaims)
+}
 
-	newTokenString, err := newToken.SignedString([]byte(s.secret))
+func (s userSession) RefreshToken(token string) (string, time.Time, error) {
+	claims, err := s.getClaimsFromToken(token)
 	if err != nil {
-		return "", time.Time{}, fmt.Errorf("Can not SignedString: %v", err)
+		return "", time.Time{}, errors.ErrUserNotFound
 	}
 
-	return newTokenString, _claims.ExpiresAt.Time, nil
+	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
+		return "", time.Time{}, errors.ErrTokenEarlyToUpdate
+	}
+
+	return s.genarateTokenFromClaims(claims)
 }
 
 func (s userSession) getTokenExpirationTime(remember bool) time.Time {
@@ -111,4 +97,29 @@ func (s userSession) getTokenExpirationTime(remember bool) time.Time {
 	}
 
 	return time.Now().Add(10 * time.Minute)
+}
+
+func (s userSession) genarateTokenFromClaims(oldClaims *claims) (string, time.Time, error) {
+	expirationTime := s.getTokenExpirationTime(false)
+	oldClaims.ExpiresAt = jwt.NewNumericDate(expirationTime)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, oldClaims)
+	tockenStr, err := token.SignedString([]byte(s.secret))
+
+	return tockenStr, expirationTime, err
+}
+
+func (s userSession) getClaimsFromToken(token string) (*claims, error) {
+	_claims := &claims{}
+	tkn, err := jwt.ParseWithClaims(token, _claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.secret), nil
+	})
+	if err != nil {
+		return &claims{}, err
+	}
+
+	if !tkn.Valid {
+		return &claims{}, fmt.Errorf("token is not valid")
+	}
+
+	return _claims, nil
 }
