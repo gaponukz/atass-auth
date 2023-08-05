@@ -91,7 +91,7 @@ func TestUpdateToken(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	newToken, expir, err := service.UpdateToken(token, dto.UpdateTokenDTO{Phone: "321"})
+	newToken, expir, err := service.UpdateToken(token, dto.UpdateUserDTO{Phone: "321"})
 	if err != nil {
 		t.Error(err.Error())
 	}

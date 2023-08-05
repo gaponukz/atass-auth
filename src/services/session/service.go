@@ -58,7 +58,7 @@ func (s userSession) GetInfoFromToken(token string) (dto.UserInfoDTO, error) {
 	return claims.UserInfoDTO, nil
 }
 
-func (s userSession) UpdateToken(token string, info dto.UpdateTokenDTO) (string, time.Time, error) {
+func (s userSession) UpdateToken(token string, info dto.UpdateUserDTO) (string, time.Time, error) {
 	oldClaims, err := s.getClaimsFromToken(token)
 	if err != nil {
 		return "", time.Time{}, err

@@ -15,7 +15,7 @@ type signinService interface {
 type sessionService interface {
 	CreateToken(dto.CreateTokenDTO) (string, time.Time, error)
 	GetInfoFromToken(string) (dto.UserInfoDTO, error)
-	UpdateToken(string, dto.UpdateTokenDTO) (string, time.Time, error)
+	UpdateToken(string, dto.UpdateUserDTO) (string, time.Time, error)
 	RefreshToken(string) (string, time.Time, error)
 }
 
@@ -322,11 +322,7 @@ func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *
 		return
 	}
 
-	newToken, expirationTime, err := c.sessionService.UpdateToken(tokenCookie.Value, dto.UpdateTokenDTO{
-		FullName:            infoToUpdate.FullName,
-		Phone:               infoToUpdate.Phone,
-		AllowsAdvertisement: infoToUpdate.AllowsAdvertisement,
-	})
+	newToken, expirationTime, err := c.sessionService.UpdateToken(tokenCookie.Value, infoToUpdate)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return

@@ -44,9 +44,3 @@ type CreateTokenDTO struct {
 	RememberHim bool `json:"rememberHim"`
 	UserInfoDTO
 }
-
-type UpdateTokenDTO struct {
-	FullName            string `json:"fullName"`
-	Phone               string `json:"phone"`
-	AllowsAdvertisement bool   `json:"allowsAdvertisement"`
-}
