@@ -101,6 +101,7 @@ jobs:
     name: Publishes to Docker Hub
     runs-on: ubuntu-latest
     needs: [e2e, golangci, security-tests]
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
