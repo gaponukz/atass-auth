@@ -6,16 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
-
-func getExpirationTime(remember bool) time.Time {
-	if remember {
-		return time.Now().Add(24 * 11 * time.Hour)
-	}
-
-	return time.Now().Add(10 * time.Minute)
-}
 
 func decodeRequestBody(request *http.Request, data interface{}) error {
 	err := json.NewDecoder(request.Body).Decode(data)

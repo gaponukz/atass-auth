@@ -12,6 +12,13 @@ type signinService interface {
 	Login(string, string) (entities.UserEntity, error)
 }
 
+type sessionService interface {
+	CreateToken(dto.CreateTokenDTO) (string, time.Time, error)
+	GetInfoFromToken(string) (dto.UserInfoDTO, error)
+	UpdateToken(string, dto.UpdateUserDTO) (string, time.Time, error)
+	RefreshToken(string) (string, time.Time, error)
+}
+
 type signupService interface {
 	SendGeneratedCode(string) (string, error)
 	AddUserToTemporaryStorage(dto.GmailWithKeyPairDTO) error
@@ -34,24 +41,30 @@ type resetPasswordService interface {
 }
 
 type Controller struct {
-	jwtSecret             string
 	signinService         signinService
 	signupService         signupService
 	resetPasswordService  resetPasswordService
 	settingsService       settingsService
 	showUserRoutesService showUserRoutesService
+	sessionService        sessionService
 }
 
-func NewController(jwtSecret string, signinService signinService, signupService signupService,
-	resetPasswordService resetPasswordService, settingsService settingsService, showUserRoutesService showUserRoutesService) *Controller {
+func NewController(
+	signinService signinService,
+	signupService signupService,
+	resetPasswordService resetPasswordService,
+	settingsService settingsService,
+	showUserRoutesService showUserRoutesService,
+	sessionService sessionService,
+) *Controller {
 
 	return &Controller{
-		jwtSecret:             jwtSecret,
 		signinService:         signinService,
 		signupService:         signupService,
 		resetPasswordService:  resetPasswordService,
 		settingsService:       settingsService,
 		showUserRoutesService: showUserRoutesService,
+		sessionService:        sessionService,
 	}
 }
 
@@ -73,10 +86,10 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 		return
 	}
 
-	token, expirationTime, err := genarateToken(
-		createTokenDTO{
+	token, expirationTime, err := c.sessionService.CreateToken(
+		dto.CreateTokenDTO{
 			RememberHim: creds.RememberHim,
-			userInfoDTO: userInfoDTO{
+			UserInfoDTO: dto.UserInfoDTO{
 				ID:                  user.ID,
 				Gmail:               user.Gmail,
 				FullName:            user.FullName,
@@ -84,9 +97,7 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 				AllowsAdvertisement: user.AllowsAdvertisement,
 			},
 		},
-		c.jwtSecret,
 	)
-
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -146,9 +157,9 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	token, expirationTime, err := genarateToken(
-		createTokenDTO{
-			userInfoDTO: userInfoDTO{
+	token, expirationTime, err := c.sessionService.CreateToken(
+		dto.CreateTokenDTO{
+			UserInfoDTO: dto.UserInfoDTO{
 				ID:                  id,
 				Gmail:               newUser.Gmail,
 				Phone:               newUser.Phone,
@@ -156,9 +167,7 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 				AllowsAdvertisement: newUser.AllowsAdvertisement,
 			},
 		},
-		c.jwtSecret,
 	)
-
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -172,24 +181,27 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 }
 
 func (c Controller) Refresh(responseWriter http.ResponseWriter, request *http.Request) {
-	claims, tokenErr := getClaimsFromRequest(request, c.jwtSecret)
-	if tokenErr != nil {
+	tokenCookie, err := request.Cookie("token")
+	if err != nil {
 		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
-		responseWriter.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	newToken, expirationTime, err := c.sessionService.RefreshToken(tokenCookie.Value)
+	if err != nil {
+		if err == errors.ErrUserNotFound {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
-	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(claims, c.jwtSecret)
+		if err == errors.ErrTokenEarlyToUpdate {
+			responseWriter.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
-	if newTokernErr != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
 	http.SetCookie(responseWriter, &http.Cookie{
 		Name:    "token",
 		Value:   newToken,
@@ -271,13 +283,24 @@ func (c Controller) ConfirmResetPassword(responseWriter http.ResponseWriter, req
 }
 
 func (c Controller) GetUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
-	userInfo, status := userInfoFromRequest(request, c.jwtSecret)
-	if status != http.StatusOK {
-		responseWriter.WriteHeader(int(status))
+	tokenCookie, err := request.Cookie("token")
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	jsonBytes, err := dumpsJson(userInfo)
+	info, err := c.sessionService.GetInfoFromToken(tokenCookie.Value)
+	if err != nil {
+		if err == errors.ErrUserNotFound {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	jsonBytes, err := dumpsJson(info)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
@@ -287,37 +310,20 @@ func (c Controller) GetUserInfo(responseWriter http.ResponseWriter, request *htt
 }
 
 func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *http.Request) {
-	dto, err := getUpdateUserDTO(request)
+	tokenCookie, err := request.Cookie("token")
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	infoToUpdate, err := getUpdateUserDTO(request)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	oldClaims, tokenErr := getClaimsFromRequest(request, c.jwtSecret)
-	if tokenErr != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	err = c.settingsService.UpdateWithFields(oldClaims.userInfoDTO.ID, dto)
+	newToken, expirationTime, err := c.sessionService.UpdateToken(tokenCookie.Value, infoToUpdate)
 	if err != nil {
-		responseWriter.WriteHeader(http.StatusInternalServerError)
-	}
-
-	newClaims := &claims{
-		userInfoDTO: userInfoDTO{
-			ID:                  oldClaims.userInfoDTO.ID,
-			Gmail:               oldClaims.userInfoDTO.Gmail,
-			Phone:               dto.Phone,
-			FullName:            dto.FullName,
-			AllowsAdvertisement: dto.AllowsAdvertisement,
-		},
-		RegisteredClaims: oldClaims.RegisteredClaims,
-	}
-
-	newToken, expirationTime, newTokernErr := genarateTokenFromClaims(newClaims, c.jwtSecret)
-
-	if newTokernErr != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -330,13 +336,24 @@ func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *
 }
 
 func (c Controller) ShowUserRoutes(responseWriter http.ResponseWriter, request *http.Request) {
-	userInfo, status := userInfoFromRequest(request, c.jwtSecret)
-	if status != http.StatusOK {
-		responseWriter.WriteHeader(int(status))
+	tokenCookie, err := request.Cookie("token")
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	routes, err := c.showUserRoutesService.ShowRoutes(userInfo.ID)
+	info, err := c.sessionService.GetInfoFromToken(tokenCookie.Value)
+	if err != nil {
+		if err == errors.ErrUserNotFound {
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	routes, err := c.showUserRoutesService.ShowRoutes(info.ID)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return

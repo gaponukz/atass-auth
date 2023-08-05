@@ -9,6 +9,7 @@ import (
 	"auth/src/notifier"
 	"auth/src/security"
 	"auth/src/services/passreset"
+	"auth/src/services/session"
 	"auth/src/services/settings"
 	"auth/src/services/show_routes"
 	"auth/src/services/signin"
@@ -42,8 +43,9 @@ func main() {
 	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, security.GenerateCode)
 	settingsService := settings.NewSettingsService(userStorage)
 	showRoutesService := show_routes.NewShowRoutesService(userStorage)
+	sessionService := session.NewSessionService(setting.JwtSecret)
 
-	controller := controller.NewController(setting.JwtSecret, signinService, signupService, passwordResetingService, settingsService, showRoutesService)
+	controller := controller.NewController(signinService, signupService, passwordResetingService, settingsService, showRoutesService, sessionService)
 
 	server := web.SetupServer(controller)
 
