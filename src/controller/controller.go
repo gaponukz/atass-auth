@@ -324,7 +324,7 @@ func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *
 
 	newToken, expirationTime, err := c.sessionService.UpdateToken(tokenCookie.Value, dto.UpdateTokenDTO{
 		FullName:            infoToUpdate.FullName,
-		Phone:               infoToUpdate.FullName,
+		Phone:               infoToUpdate.Phone,
 		AllowsAdvertisement: infoToUpdate.AllowsAdvertisement,
 	})
 	if err != nil {
