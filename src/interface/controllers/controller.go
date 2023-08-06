@@ -41,12 +41,14 @@ type resetPasswordService interface {
 }
 
 type Controller struct {
-	signinService         signinService
-	signupService         signupService
-	resetPasswordService  resetPasswordService
-	settingsService       settingsService
+	signinService        signinService
+	signupService        signupService
+	resetPasswordService resetPasswordService
+	sessionService       sessionService
+
+	settingsService settingsService
+
 	showUserRoutesService showUserRoutesService
-	sessionService        sessionService
 }
 
 func NewController(
