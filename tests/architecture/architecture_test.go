@@ -6,67 +6,51 @@ import (
 	"github.com/matthewmcnew/archtest"
 )
 
-func noDependenciesPackages() []string {
-	return []string{
-		"auth/src/entities",
-		"auth/src/utils",
-		"auth/src/errors",
-		"auth/src/dto",
-	}
-}
-
-func getHelpers() []string {
-	return []string{
-		"auth/src/storage",
-		"auth/src/notifier",
-		"auth/src/security",
-		"auth/src/settings",
-	}
-}
-
-func getServices() []string {
-	return []string{
-		"auth/src/services/passreset",
-		"auth/src/services/settings",
-		"auth/src/services/signup",
-		"auth/src/services/signin",
-	}
-}
-
 func TestArchitecture(t *testing.T) {
-	t.Run("some packages must have no dependencies", func(t *testing.T) {
+	t.Run("domain layer must have no dependencies", func(t *testing.T) {
 		mockT := new(testingT)
 
-		for _, p1 := range noDependenciesPackages() {
-			for _, p := range getHelpers() {
-				archtest.Package(t, p1).ShouldNotDependOn(p)
-				assertNoError(t, mockT)
-			}
-
-			for _, p := range getServices() {
-				archtest.Package(t, p1).ShouldNotDependOn(p)
-				assertNoError(t, mockT)
+		for _, domainPackage := range domainLayer() {
+			for _, applicationPackage := range applicationLayer() {
+				archtest.Package(t, domainPackage).ShouldNotDependOn(applicationPackage)
 			}
 		}
+
+		for _, domainPackage := range domainLayer() {
+			for _, infrastructurePackage := range infrastructureLayer() {
+				archtest.Package(t, domainPackage).ShouldNotDependOn(infrastructurePackage)
+			}
+		}
+
+		for _, domainPackage := range domainLayer() {
+			for _, interfacePackage := range interfaceLayer() {
+				archtest.Package(t, domainPackage).ShouldNotDependOn(interfacePackage)
+			}
+		}
+		assertNoError(t, mockT)
 	})
 
-	t.Run("Services must be independent among ourselves", func(t *testing.T) {
-		for _, p1 := range getServices() {
-			for _, p2 := range getServices() {
-				if p1 == p2 {
-					continue
-				}
+	t.Run("application layer must not depend on interface", func(t *testing.T) {
+		mockT := new(testingT)
 
-				archtest.Package(t, p1).ShouldNotDependOn(p2)
+		for _, applicationPackage := range applicationLayer() {
+			for _, interfacePackage := range interfaceLayer() {
+				archtest.Package(t, applicationPackage).ShouldNotDependOn(interfacePackage)
 			}
 		}
+
+		assertNoError(t, mockT)
 	})
 
-	t.Run("Services must not know about helpers", func(t *testing.T) {
-		for _, h := range getHelpers() {
-			for _, s := range getServices() {
-				archtest.Package(t, s).ShouldNotDependOn(h)
+	t.Run("application layer must not depend on infrastructure", func(t *testing.T) {
+		mockT := new(testingT)
+
+		for _, applicationPackage := range applicationLayer() {
+			for _, infrastructurePackage := range infrastructureLayer() {
+				archtest.Package(t, applicationPackage).ShouldNotDependOn(infrastructurePackage)
 			}
 		}
+
+		assertNoError(t, mockT)
 	})
 }
