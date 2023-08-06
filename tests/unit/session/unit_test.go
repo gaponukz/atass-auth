@@ -1,9 +1,9 @@
 package session
 
 import (
-	"auth/src/dto"
-	"auth/src/errors"
-	"auth/src/services/session"
+	"auth/src/application/dto"
+	"auth/src/application/usecases/session"
+	"auth/src/domain/errors"
 	"testing"
 	"time"
 )

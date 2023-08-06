@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"auth/src/entities"
+	"auth/src/domain/entities"
 	"errors"
 )
 

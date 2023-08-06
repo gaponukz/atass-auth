@@ -1,20 +1,18 @@
 package main
 
 import (
+	"auth/src/application/usecases/passreset"
+	"auth/src/application/usecases/session"
+	"auth/src/application/usecases/settings"
+	"auth/src/application/usecases/show_routes"
+	"auth/src/application/usecases/signin"
+	"auth/src/application/usecases/signup"
+	"auth/src/infr/logger"
+	"auth/src/infr/storage"
+	"auth/src/interface/controller"
 	"fmt"
 	"os"
 	"time"
-
-	"auth/src/controller"
-	"auth/src/logger"
-	"auth/src/services/passreset"
-	"auth/src/services/session"
-	"auth/src/services/settings"
-	"auth/src/services/show_routes"
-	"auth/src/services/signin"
-	"auth/src/services/signup"
-	"auth/src/storage"
-	"auth/src/web"
 )
 
 func main() {
@@ -44,8 +42,8 @@ func main() {
 	showRoutesService := show_routes.NewShowRoutesService(userStorage)
 	sessionService := session.NewSessionService("guaghf79gf")
 
-	controller := controller.NewController(signinService, signupService, passwordResetingService, settingsService, showRoutesService, sessionService)
-	server := web.SetupTestServer(controller)
+	contr := controller.NewController(signinService, signupService, passwordResetingService, settingsService, showRoutesService, sessionService)
+	server := controller.SetupServer(contr)
 
 	err = server.ListenAndServe()
 	if err != nil {

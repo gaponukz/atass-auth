@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"auth/src/entities"
-	"auth/src/errors"
-	"auth/src/services/routes"
+	"auth/src/application/usecases/routes"
+	"auth/src/domain/entities"
+	"auth/src/domain/errors"
 	"auth/tests/unit/mocks"
 	"testing"
 )
