@@ -1,7 +1,7 @@
-package consumer
+package event_handler
 
 import (
-	"auth/src/entities"
+	"auth/src/domain/entities"
 	"encoding/json"
 	"fmt"
 

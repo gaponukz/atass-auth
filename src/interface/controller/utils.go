@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"auth/src/dto"
+	"auth/src/application/dto"
 	"encoding/json"
 	"fmt"
 	"io"

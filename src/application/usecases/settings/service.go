@@ -1,8 +1,8 @@
 package settings
 
 import (
-	"auth/src/dto"
-	"auth/src/entities"
+	"auth/src/application/dto"
+	"auth/src/domain/entities"
 )
 
 type storage interface {

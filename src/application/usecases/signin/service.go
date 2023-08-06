@@ -1,8 +1,8 @@
 package signin
 
 import (
-	"auth/src/entities"
-	"auth/src/errors"
+	"auth/src/domain/entities"
+	"auth/src/domain/errors"
 	"auth/src/utils"
 )
 

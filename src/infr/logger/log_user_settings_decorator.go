@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"auth/src/dto"
+	"auth/src/application/dto"
 	"fmt"
 )
 

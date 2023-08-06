@@ -1,10 +1,10 @@
 package resetpassword
 
 import (
-	"auth/src/dto"
-	"auth/src/entities"
-	"auth/src/errors"
-	"auth/src/services/passreset"
+	"auth/src/application/dto"
+	"auth/src/application/usecases/passreset"
+	"auth/src/domain/entities"
+	"auth/src/domain/errors"
 	"auth/src/utils"
 	"auth/tests/unit/mocks"
 	"testing"

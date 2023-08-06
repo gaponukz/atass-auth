@@ -1,21 +1,19 @@
 package main
 
 import (
+	"auth/src/application/usecases/passreset"
+	"auth/src/application/usecases/session"
+	"auth/src/application/usecases/settings"
+	"auth/src/application/usecases/show_routes"
+	"auth/src/application/usecases/signin"
+	"auth/src/application/usecases/signup"
+	"auth/src/infr/config"
+	"auth/src/infr/notifier"
+	"auth/src/infr/security"
+	"auth/src/infr/storage"
+	"auth/src/interface/controller"
 	"fmt"
 	"time"
-
-	"auth/src/config"
-	"auth/src/controller"
-	"auth/src/notifier"
-	"auth/src/security"
-	"auth/src/services/passreset"
-	"auth/src/services/session"
-	"auth/src/services/settings"
-	"auth/src/services/show_routes"
-	"auth/src/services/signin"
-	"auth/src/services/signup"
-	"auth/src/storage"
-	"auth/src/web"
 )
 
 func main() {
@@ -45,9 +43,9 @@ func main() {
 	showRoutesService := show_routes.NewShowRoutesService(userStorage)
 	sessionService := session.NewSessionService(setting.JwtSecret)
 
-	controller := controller.NewController(signinService, signupService, passwordResetingService, settingsService, showRoutesService, sessionService)
+	contr := controller.NewController(signinService, signupService, passwordResetingService, settingsService, showRoutesService, sessionService)
 
-	server := web.SetupServer(controller)
+	server := controller.SetupServer(contr)
 
 	fmt.Printf("⚡️[server]: Server is running at http://localhost:%d\n", setting.Port)
 

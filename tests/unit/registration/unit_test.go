@@ -1,10 +1,10 @@
 package registration
 
 import (
-	"auth/src/dto"
-	"auth/src/entities"
-	"auth/src/errors"
-	"auth/src/services/signup"
+	"auth/src/application/dto"
+	"auth/src/application/usecases/signup"
+	"auth/src/domain/entities"
+	"auth/src/domain/errors"
 	"auth/src/utils"
 	"auth/tests/unit/mocks"
 	"testing"

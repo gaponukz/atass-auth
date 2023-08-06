@@ -1,8 +1,6 @@
 package routes
 
-import (
-	"auth/src/entities"
-)
+import "auth/src/domain/entities"
 
 type db interface {
 	ByID(string) (entities.UserEntity, error)

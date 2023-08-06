@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"auth/src/dto"
+	"auth/src/application/dto"
 	"context"
 	"fmt"
 	"time"

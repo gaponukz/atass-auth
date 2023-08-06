@@ -1,9 +1,9 @@
 package signup
 
 import (
-	"auth/src/dto"
-	"auth/src/entities"
-	"auth/src/errors"
+	"auth/src/application/dto"
+	"auth/src/domain/entities"
+	"auth/src/domain/errors"
 	"auth/src/utils"
 )
 

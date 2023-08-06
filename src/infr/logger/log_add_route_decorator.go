@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"auth/src/entities"
+	"auth/src/domain/entities"
 	"fmt"
 )
 

@@ -1,8 +1,8 @@
 package session
 
 import (
-	"auth/src/dto"
-	"auth/src/errors"
+	"auth/src/application/dto"
+	"auth/src/domain/errors"
 	"fmt"
 	"time"
 

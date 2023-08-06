@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"auth/src/entities"
+	"auth/src/domain/entities"
 	"encoding/json"
 	"fmt"
 	"os"

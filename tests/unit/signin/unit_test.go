@@ -1,8 +1,8 @@
 package signin
 
 import (
-	"auth/src/entities"
-	"auth/src/services/signin"
+	"auth/src/application/usecases/signin"
+	"auth/src/domain/entities"
 	"auth/tests/unit/mocks"
 	"testing"
 )

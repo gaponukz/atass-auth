@@ -1,9 +1,9 @@
 package settings
 
 import (
-	"auth/src/dto"
-	"auth/src/entities"
-	"auth/src/services/settings"
+	"auth/src/application/dto"
+	"auth/src/application/usecases/settings"
+	"auth/src/domain/entities"
 	"auth/tests/unit/mocks"
 	"testing"
 )
