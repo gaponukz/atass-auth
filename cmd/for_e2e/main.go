@@ -38,8 +38,8 @@ func main() {
 		panic(err.Error())
 	}
 
-	futureUserStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "register")
-	resetPassStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "reset")
+	futureUserStor := storage.NewRedisTemporaryStorage("redis:6379", 1*time.Minute, "register")
+	resetPassStor := storage.NewRedisTemporaryStorage("redis:6379", 1*time.Minute, "reset")
 
 	logging := logger.NewConsoleLogger()
 	hash := func(s string) string { return s }
