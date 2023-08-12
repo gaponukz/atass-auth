@@ -2,7 +2,6 @@ package main
 
 import (
 	"auth/src/application/usecases/passreset"
-	"auth/src/application/usecases/routes"
 	"auth/src/application/usecases/session"
 	"auth/src/application/usecases/settings"
 	"auth/src/application/usecases/show_routes"
@@ -14,7 +13,6 @@ import (
 	"auth/src/infr/security"
 	"auth/src/infr/storage"
 	"auth/src/interface/controller"
-	"auth/src/interface/event_handler"
 	"fmt"
 	"time"
 )
@@ -22,13 +20,12 @@ import (
 func main() {
 	setting := config.NewDotEnvSettings().Load()
 
-	userStorage, err := storage.NewPostgresUserStorage(storage.PostgresCredentials{
-		Host:     setting.PostgresHost,
-		User:     setting.PostgresUser,
-		Password: setting.PostgresPassword,
-		Dbname:   setting.PostgresDbname,
-		Port:     setting.PostgresPort,
-		Sslmode:  setting.PostgresSslmode,
+	userStorage, err := storage.NewMySQLUserStorage(storage.MySQLCredentials{
+		Host:     setting.MysqlHost,
+		User:     setting.MysqlUser,
+		Password: setting.MysqlPassword,
+		Dbname:   setting.MysqlDbname,
+		Port:     setting.MysqlPort,
 	})
 	if err != nil {
 		panic(err.Error())
@@ -54,19 +51,19 @@ func main() {
 	signupService := logger.NewLogSignupServiceDecorator(signup.NewRegistrationService(userStorage, futureUserStor, signupNotifier, security.GenerateCode, hash), logging)
 	passwordResetingService := logger.NewLogResetPasswordServiceDecorator(passreset.NewResetPasswordService(userStorage, resetPassStor, passresetNotifier, hash, security.GenerateCode), logging)
 	settingsService := logger.NewLogSettingsServiceDecorator(settings.NewSettingsService(userStorage), logging)
-	routesService := logger.NewLogAddRouteDecorator(routes.NewRoutesService(userStorage), logging)
+	// routesService := logger.NewLogAddRouteDecorator(routes.NewRoutesService(userStorage), logging)
 	showRoutesService := show_routes.NewShowRoutesService(userStorage)
 	sessionService := session.NewSessionService(setting.JwtSecret)
 
 	contr := controller.NewController(signinService, signupService, passwordResetingService, settingsService, showRoutesService, sessionService)
-	routesEventsListener, err := event_handler.NewRoutesEventsListener(routesService, setting.RabbitUrl)
-	if err != nil {
-		panic(err.Error())
-	}
+	// routesEventsListener, err := event_handler.NewRoutesEventsListener(routesService, setting.RabbitUrl)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
 
-	defer routesEventsListener.Close()
+	// defer routesEventsListener.Close()
 
-	go routesEventsListener.Listen()
+	// go routesEventsListener.Listen()
 
 	server := controller.SetupServer(contr)
 

@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -63,21 +63,20 @@ func fromUserToProxy(u entities.User) dbProxyUser {
 	}
 }
 
-type PostgresCredentials struct {
+type MySQLCredentials struct {
 	Host     string
 	User     string
 	Password string
 	Dbname   string
 	Port     string
-	Sslmode  string
 }
 
-func NewPostgresUserStorage(c PostgresCredentials) (*sqlUserStorage, error) {
+func NewMySQLUserStorage(c MySQLCredentials) (*sqlUserStorage, error) {
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
-		c.Host, c.User, c.Password, c.Dbname, c.Port, c.Sslmode,
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		c.User, c.Password, c.Host, c.Port, c.Dbname,
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}

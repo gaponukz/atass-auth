@@ -26,13 +26,12 @@ func (m notifierMock) NotifyUser(to entities.User, code string) error {
 }
 
 func main() {
-	userStorage, err := storage.NewPostgresUserStorage(storage.PostgresCredentials{
-		Host:     "postgres",
+	userStorage, err := storage.NewMySQLUserStorage(storage.MySQLCredentials{
+		Host:     "mysql",
 		User:     "myuser",
 		Password: "mypassword",
 		Dbname:   "users",
-		Port:     "5432",
-		Sslmode:  "disable",
+		Port:     "3306",
 	})
 	if err != nil {
 		panic(err.Error())

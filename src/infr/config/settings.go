@@ -9,19 +9,19 @@ import (
 )
 
 type Settings struct {
-	JwtSecret        string `json:"jwtSecret"`
-	HashSecret       string `json:"hashSecret"`
-	Gmail            string `json:"gmail"`
-	GmailPassword    string `json:"gmailPassword"`
-	Port             int64  `json:"port"`
-	RedisAddress     string `json:"redisAddress"`
-	PostgresHost     string `json:"postgresHost"`
-	PostgresUser     string `json:"postgresUser"`
-	PostgresPassword string `json:"postgresPassword"`
-	PostgresDbname   string `json:"postgresDbname"`
-	PostgresPort     string `json:"postgresPort"`
-	PostgresSslmode  string `json:"postgresSslmode"`
-	RabbitUrl        string `json:"rabbitUrl"`
+	JwtSecret     string `json:"jwtSecret"`
+	HashSecret    string `json:"hashSecret"`
+	Gmail         string `json:"gmail"`
+	GmailPassword string `json:"gmailPassword"`
+	Port          int64  `json:"port"`
+	RedisAddress  string `json:"redisAddress"`
+	MysqlHost     string `json:"mysqlHost"`
+	MysqlUser     string `json:"mysqlUser"`
+	MysqlPassword string `json:"mysqlPassword"`
+	MysqlDbname   string `json:"mysqlDbname"`
+	MysqlPort     string `json:"mysqlPort"`
+	MysqlSslmode  string `json:"mysqlSslmode"`
+	RabbitUrl     string `json:"rabbitUrl"`
 }
 
 type dotEnvSettings struct{}
@@ -54,18 +54,18 @@ func (sts dotEnvSettings) Load() Settings {
 	}
 
 	return Settings{
-		JwtSecret:        os.Getenv("jwtSecret"),
-		HashSecret:       os.Getenv("hashSecret"),
-		Gmail:            os.Getenv("gmail"),
-		GmailPassword:    os.Getenv("gmailPassword"),
-		Port:             parsePort(os.Getenv("port")),
-		RedisAddress:     checkRedis(os.Getenv("redisAddress")),
-		PostgresHost:     os.Getenv("postgresHost"),
-		PostgresUser:     os.Getenv("postgresUser"),
-		PostgresPassword: os.Getenv("postgresPassword"),
-		PostgresDbname:   os.Getenv("postgresDbname"),
-		PostgresPort:     os.Getenv("postgresPort"),
-		PostgresSslmode:  os.Getenv("postgresSslmode"),
-		RabbitUrl:        os.Getenv("rabbitmqUrl"),
+		JwtSecret:     os.Getenv("jwtSecret"),
+		HashSecret:    os.Getenv("hashSecret"),
+		Gmail:         os.Getenv("gmail"),
+		GmailPassword: os.Getenv("gmailPassword"),
+		Port:          parsePort(os.Getenv("port")),
+		RedisAddress:  checkRedis(os.Getenv("redisAddress")),
+		MysqlHost:     os.Getenv("mysqlHost"),
+		MysqlUser:     os.Getenv("mysqlUser"),
+		MysqlPassword: os.Getenv("mysqlPassword"),
+		MysqlDbname:   os.Getenv("mysqlDbname"),
+		MysqlPort:     os.Getenv("mysqlPort"),
+		MysqlSslmode:  os.Getenv("mysqlSslmode"),
+		RabbitUrl:     os.Getenv("rabbitmqUrl"),
 	}
 }
