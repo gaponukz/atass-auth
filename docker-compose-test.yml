@@ -37,4 +37,4 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - .env
+      - .env-test
