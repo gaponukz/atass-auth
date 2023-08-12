@@ -32,3 +32,4 @@ README.md
 .github/workflows/
 code_testing.yml
 .vscode
+postgres-data

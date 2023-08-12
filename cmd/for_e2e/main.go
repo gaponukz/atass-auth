@@ -12,7 +12,6 @@ import (
 	"auth/src/infr/storage"
 	"auth/src/interface/controller"
 	"fmt"
-	"os"
 	"time"
 )
 
@@ -27,18 +26,20 @@ func (m notifierMock) NotifyUser(to entities.User, code string) error {
 }
 
 func main() {
-	databaseFilename := "test.json"
-	err := os.WriteFile(databaseFilename, []byte("[]"), 0600)
+	userStorage, err := storage.NewPostgresUserStorage(storage.PostgresCredentials{
+		Host:     "postgres",
+		User:     "myuser",
+		Password: "mypassword",
+		Dbname:   "users",
+		Port:     "5432",
+		Sslmode:  "disable",
+	})
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
-	defer func() {
-		_ = os.Remove(databaseFilename)
-	}()
 
-	futureUserStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "register")
-	resetPassStor := storage.NewRedisTemporaryStorage("localhost:6379", 1*time.Minute, "reset")
-	userStorage := storage.NewUserJsonFileStorage(databaseFilename)
+	futureUserStor := storage.NewRedisTemporaryStorage("redis:6379", 1*time.Minute, "register")
+	resetPassStor := storage.NewRedisTemporaryStorage("redis:6379", 1*time.Minute, "reset")
 
 	logging := logger.NewConsoleLogger()
 	hash := func(s string) string { return s }
