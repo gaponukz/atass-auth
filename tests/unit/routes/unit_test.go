@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"auth/src/application/dto"
 	"auth/src/application/usecases/routes"
 	"auth/src/domain/entities"
 	"auth/src/domain/errors"
@@ -17,7 +18,7 @@ func TestAddRoute(t *testing.T) {
 		t.Errorf("can add route for not existens user")
 	}
 
-	user, err := db.Create(entities.User{})
+	user, err := db.Create(dto.CreateUserDTO{})
 	if err != nil {
 		t.Error(err.Error())
 	}

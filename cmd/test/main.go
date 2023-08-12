@@ -24,7 +24,7 @@ func (m notifierMock) Notify(to, code string) error {
 	return nil
 }
 
-func (m notifierMock) NotifyUser(to entities.UserEntity, code string) error {
+func (m notifierMock) NotifyUser(to entities.User, code string) error {
 	return nil
 }
 

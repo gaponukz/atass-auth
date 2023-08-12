@@ -3,8 +3,8 @@ package routes
 import "auth/src/domain/entities"
 
 type db interface {
-	ByID(string) (entities.UserEntity, error)
-	Update(entities.UserEntity) error
+	ByID(string) (entities.User, error)
+	Update(entities.User) error
 }
 
 type routesService struct {

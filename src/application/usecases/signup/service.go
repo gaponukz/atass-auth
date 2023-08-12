@@ -12,8 +12,8 @@ type notifier interface {
 }
 
 type createAndReadAbleStorage interface {
-	Create(entities.User) (entities.UserEntity, error)
-	ReadAll() ([]entities.UserEntity, error)
+	Create(dto.CreateUserDTO) (entities.User, error)
+	ReadAll() ([]entities.User, error)
 }
 
 type gmailKeyPairStorage interface {
@@ -52,7 +52,7 @@ func (s registrationService) SendGeneratedCode(userGmail string) (string, error)
 		return "", err
 	}
 
-	isExist := utils.IsExist(users, func(u entities.UserEntity) bool {
+	isExist := utils.IsExist(users, func(u entities.User) bool {
 		return u.Gmail == userGmail
 	})
 
@@ -77,7 +77,7 @@ func (s registrationService) RegisterUserOnRightCode(user dto.SignUpDTO) (string
 	}
 
 	user.Password = s.hash(user.Password)
-	newUser, err := s.userStorage.Create(entities.User{
+	newUser, err := s.userStorage.Create(dto.CreateUserDTO{
 		Gmail:               user.Gmail,
 		Phone:               user.Phone,
 		FullName:            user.FullName,

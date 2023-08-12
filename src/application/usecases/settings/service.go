@@ -6,8 +6,8 @@ import (
 )
 
 type storage interface {
-	ByID(string) (entities.UserEntity, error)
-	Update(entities.UserEntity) error
+	ByID(string) (entities.User, error)
+	Update(entities.User) error
 }
 
 type settingsService struct {

@@ -9,7 +9,7 @@ import (
 )
 
 type signinService interface {
-	Login(string, string) (entities.UserEntity, error)
+	Login(string, string) (entities.User, error)
 }
 
 type sessionService interface {

@@ -5,8 +5,8 @@ import (
 	"errors"
 )
 
-func Filter(users []entities.UserEntity, filterFunc func(user entities.UserEntity) bool) []entities.UserEntity {
-	var filteredUsers []entities.UserEntity
+func Filter(users []entities.User, filterFunc func(user entities.User) bool) []entities.User {
+	var filteredUsers []entities.User
 	for _, user := range users {
 		if filterFunc(user) {
 			filteredUsers = append(filteredUsers, user)
@@ -15,17 +15,17 @@ func Filter(users []entities.UserEntity, filterFunc func(user entities.UserEntit
 	return filteredUsers
 }
 
-func Find(users []entities.UserEntity, filterFunc func(user entities.UserEntity) bool) (entities.UserEntity, error) {
+func Find(users []entities.User, filterFunc func(user entities.User) bool) (entities.User, error) {
 	for _, user := range users {
 		if filterFunc(user) {
 			return user, nil
 		}
 	}
 
-	return entities.UserEntity{}, errors.New("not found")
+	return entities.User{}, errors.New("not found")
 }
 
-func IsExist(users []entities.UserEntity, filterFunc func(user entities.UserEntity) bool) bool {
+func IsExist(users []entities.User, filterFunc func(user entities.User) bool) bool {
 	for _, user := range users {
 		if filterFunc(user) {
 			return true

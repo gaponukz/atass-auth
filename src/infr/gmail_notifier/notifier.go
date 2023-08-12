@@ -47,7 +47,7 @@ func (n gmailNotifier) Notify(to, code string) error {
 	return smtp.SendMail("smtp.gmail.com:587", n.auth, n.gmail, []string{to}, n.generateLetter(to, code))
 }
 
-func (n gmailNotifier) NotifyUser(to entities.UserEntity, code string) error {
+func (n gmailNotifier) NotifyUser(to entities.User, code string) error {
 	return n.Notify(to.Gmail, code)
 }
 

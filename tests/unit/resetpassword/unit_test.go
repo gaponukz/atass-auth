@@ -25,7 +25,7 @@ func TestNotifyUser(t *testing.T) {
 		t.Error("Can notify not registered gmail")
 	}
 
-	testUser := entities.User{Gmail: "user@gmail.com"}
+	testUser := dto.CreateUserDTO{Gmail: "user@gmail.com"}
 
 	_, err = sm.Create(testUser)
 	if err != nil {
@@ -46,7 +46,7 @@ func TestAddUserToTemporaryStorage(t *testing.T) {
 	tsm := mocks.NewTemporaryStorageMock()
 	s := passreset.NewResetPasswordService(sm, tsm, nil, nil, nil)
 
-	testUser := entities.User{Gmail: "user@gmail.com"}
+	testUser := dto.CreateUserDTO{Gmail: "user@gmail.com"}
 	pair := dto.GmailWithKeyPairDTO{Gmail: "user@gmail.com", Key: "12345"}
 
 	_, err := sm.Create(testUser)
@@ -73,7 +73,7 @@ func TestCancelPasswordResetting(t *testing.T) {
 	const gmail = "test@gmain.com"
 	const key = "12345"
 	testPair := dto.GmailWithKeyPairDTO{Gmail: gmail, Key: key}
-	testUser := entities.User{Gmail: gmail, Password: "old"}
+	testUser := dto.CreateUserDTO{Gmail: gmail, Password: "old"}
 
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
@@ -104,7 +104,7 @@ func TestChangeUserPasswordWithWrongCode(t *testing.T) {
 	const gmail = "test@gmain.com"
 	const key = "12345"
 	testPair := dto.GmailWithKeyPairDTO{Gmail: gmail, Key: key}
-	testUser := entities.User{Gmail: gmail, Password: "old"}
+	testUser := dto.CreateUserDTO{Gmail: gmail, Password: "old"}
 
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
@@ -131,7 +131,7 @@ func TestChangeUserPassword(t *testing.T) {
 	const gmail = "test@gmain.com"
 	const key = "12345"
 	testPair := dto.GmailWithKeyPairDTO{Gmail: gmail, Key: key}
-	testUser := entities.User{Gmail: gmail, Password: "old"}
+	testUser := dto.CreateUserDTO{Gmail: gmail, Password: "old"}
 
 	sm := mocks.NewMockStorage()
 	tsm := mocks.NewTemporaryStorageMock()
@@ -163,7 +163,7 @@ func TestChangeUserPassword(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	user, err := utils.Find(users, func(user entities.UserEntity) bool {
+	user, err := utils.Find(users, func(user entities.User) bool {
 		return user.Gmail == gmail
 	})
 	if err != nil {

@@ -8,12 +8,12 @@ import (
 )
 
 type notifier interface {
-	NotifyUser(entities.UserEntity, string) error
+	NotifyUser(entities.User, string) error
 }
 
 type updateAndReadAbleStorage interface {
-	ReadAll() ([]entities.UserEntity, error)
-	Update(entities.UserEntity) error
+	ReadAll() ([]entities.User, error)
+	Update(entities.User) error
 }
 
 type gmailKeyPairStorage interface {
@@ -52,7 +52,7 @@ func (s resetPasswordService) NotifyUser(userGmail string) (string, error) {
 		return "", err
 	}
 
-	user, err := utils.Find(users, func(u entities.UserEntity) bool {
+	user, err := utils.Find(users, func(u entities.User) bool {
 		return u.Gmail == userGmail
 	})
 	if err != nil {
@@ -89,7 +89,7 @@ func (s resetPasswordService) ChangeUserPassword(data dto.PasswordResetDTO) erro
 		return err
 	}
 
-	userToUpdate, err := utils.Find(users, func(u entities.UserEntity) bool {
+	userToUpdate, err := utils.Find(users, func(u entities.User) bool {
 		return u.Gmail == data.Gmail
 	})
 
