@@ -77,3 +77,23 @@ func (m *mockStorage) ByID(id string) (entities.UserEntity, error) {
 func NewMockStorage() *mockStorage {
 	return &mockStorage{}
 }
+
+type mockUserNotifier struct{}
+
+func (m mockUserNotifier) NotifyUser(user entities.UserEntity, mes string) error {
+	return nil
+}
+
+func NewMockUserNotifier() mockUserNotifier {
+	return mockUserNotifier{}
+}
+
+type mockGmailNotifier struct{}
+
+func (m mockGmailNotifier) Notify(user string, mes string) error {
+	return nil
+}
+
+func NewMockGmailNotifier() mockGmailNotifier {
+	return mockGmailNotifier{}
+}

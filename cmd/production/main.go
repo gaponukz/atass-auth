@@ -8,7 +8,7 @@ import (
 	"auth/src/application/usecases/signin"
 	"auth/src/application/usecases/signup"
 	"auth/src/infr/config"
-	"auth/src/infr/notifier"
+	"auth/src/infr/gmail_notifier"
 	"auth/src/infr/security"
 	"auth/src/infr/storage"
 	"auth/src/interface/controller"
@@ -22,23 +22,21 @@ func main() {
 	futureUserStor := storage.NewRedisTemporaryStorage(setting.RedisAddress, 30*time.Minute, "register")
 	resetPassStor := storage.NewRedisTemporaryStorage(setting.RedisAddress, 5*time.Minute, "reset")
 	userStorage := storage.NewUserJsonFileStorage("users.json")
-	sendFromCreds := notifier.SendFrom{Gmail: setting.Gmail, Password: setting.GmailPassword}
+	sendFromCreds := gmail_notifier.GmailCreds{Gmail: setting.Gmail, Password: setting.GmailPassword}
 
-	sendRegisterGmail := notifier.SendEmailNoificationFactory(
-		sendFromCreds,
-		"Confirm your registration",
-		"letters/confirmRegistration.html",
-	)
+	signupNotifier := gmail_notifier.NewGmailNotifier(sendFromCreds, gmail_notifier.Letter{
+		Title:    "Confirm your registration",
+		HtmlPath: "letters/confirmRegistration.html",
+	})
 
-	sendResetPasswordLetter := notifier.SendEmailNoificationFactory(
-		sendFromCreds,
-		"Confirm your password reseting",
-		"letters/resetPasswors.html",
-	)
+	passresetNotifier := gmail_notifier.NewGmailNotifier(sendFromCreds, gmail_notifier.Letter{
+		Title:    "Confirm your password reseting",
+		HtmlPath: "letters/resetPasswors.html",
+	})
 
 	signinService := signin.NewSigninService(userStorage, hash)
-	signupService := signup.NewRegistrationService(userStorage, futureUserStor, sendRegisterGmail, security.GenerateCode, hash)
-	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, sendResetPasswordLetter, hash, security.GenerateCode)
+	signupService := signup.NewRegistrationService(userStorage, futureUserStor, signupNotifier, security.GenerateCode, hash)
+	passwordResetingService := passreset.NewResetPasswordService(userStorage, resetPassStor, passresetNotifier, hash, security.GenerateCode)
 	settingsService := settings.NewSettingsService(userStorage)
 	showRoutesService := show_routes.NewShowRoutesService(userStorage)
 	sessionService := session.NewSessionService(setting.JwtSecret)

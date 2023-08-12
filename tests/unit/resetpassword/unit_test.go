@@ -14,7 +14,7 @@ func TestNotifyUser(t *testing.T) {
 	const expectedCode = "12345"
 
 	sm := mocks.NewMockStorage()
-	notify := func(gmail string, key string) error { return nil }
+	notify := mocks.NewMockUserNotifier()
 	sendCode := func() string { return expectedCode }
 	hash := func(s string) string { return s }
 

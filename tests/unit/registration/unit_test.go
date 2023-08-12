@@ -14,7 +14,7 @@ func TestSendGeneratedCode(t *testing.T) {
 	const expectedCode = "12345"
 
 	sm := mocks.NewMockStorage()
-	notify := func(gmail string, key string) error { return nil }
+	notify := mocks.NewMockGmailNotifier()
 	generateCode := func() string { return expectedCode }
 	hash := func(s string) string { return s }
 	s := signup.NewRegistrationService(sm, nil, notify, generateCode, hash)

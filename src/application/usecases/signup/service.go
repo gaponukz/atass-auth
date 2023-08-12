@@ -7,6 +7,10 @@ import (
 	"auth/src/utils"
 )
 
+type notifier interface {
+	Notify(string, string) error
+}
+
 type createAndReadAbleStorage interface {
 	Create(entities.User) (entities.UserEntity, error)
 	ReadAll() ([]entities.UserEntity, error)
@@ -21,14 +25,14 @@ type gmailKeyPairStorage interface {
 func NewRegistrationService(
 	userStorage createAndReadAbleStorage,
 	futureUserStorage gmailKeyPairStorage,
-	notify func(gmail, key string) error,
+	notifier notifier,
 	generateCode func() string,
 	hash func(string) string,
 ) *registrationService {
 	return &registrationService{
 		userStorage:       userStorage,
 		futureUserStorage: futureUserStorage,
-		notify:            notify,
+		notifier:          notifier,
 		generateCode:      generateCode,
 		hash:              hash,
 	}
@@ -37,7 +41,7 @@ func NewRegistrationService(
 type registrationService struct {
 	userStorage       createAndReadAbleStorage
 	futureUserStorage gmailKeyPairStorage
-	notify            func(gmail, key string) error
+	notifier          notifier
 	generateCode      func() string
 	hash              func(string) string
 }
@@ -57,7 +61,7 @@ func (s registrationService) SendGeneratedCode(userGmail string) (string, error)
 	}
 
 	key := s.generateCode()
-	err = s.notify(userGmail, key) // TODO: 5 sec deadline context
+	err = s.notifier.Notify(userGmail, key)
 
 	return key, err
 }
