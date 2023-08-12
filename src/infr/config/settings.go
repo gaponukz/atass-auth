@@ -33,7 +33,7 @@ func NewDotEnvSettings() *dotEnvSettings {
 func parsePort(port string) int64 {
 	i, err := strconv.ParseInt(port, 10, 64)
 	if err != nil {
-		return 8000
+		return 8080
 	}
 
 	return i
