@@ -78,7 +78,7 @@ jobs:
       id: start-containers
       run: |
         docker-compose -f "docker-compose-test.yml" up -d --build
-        # Print container logs
+        sleep 10
         docker-compose -f "docker-compose-test.yml" logs
 
     - name: Install Python and pytest
@@ -87,8 +87,6 @@ jobs:
         python-version: '3.x'
     - name: Install dependencies
       run: pip install -r tests/e2e/requirements.txt
-    - name: Wait for Go app to start
-      run: sleep 10
     - name: Run end-to-end tests
       run: pytest tests/e2e/e2e_test.py
       if: steps.start-containers.outcome == 'success'
