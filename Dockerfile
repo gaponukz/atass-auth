@@ -9,4 +9,4 @@ RUN go mod download
 COPY . .
 
 EXPOSE 8080
-CMD ["go", "run", "cmd/test/main.go"]
+CMD ["go", "run", "cmd/production/main.go"]
