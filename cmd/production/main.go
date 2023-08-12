@@ -65,7 +65,7 @@ func main() {
 
 	// go routesEventsListener.Listen()
 
-	server := controller.SetupServer(contr)
+	server := controller.SetupTestServer(contr)
 
 	fmt.Printf("⚡️[server]: Server is running at http://localhost:%d\n", setting.Port)
 
