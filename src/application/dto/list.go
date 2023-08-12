@@ -11,6 +11,14 @@ type SignInDTO struct {
 	RememberHim bool   `json:"rememberHim"`
 }
 
+type CreateUserDTO struct {
+	Gmail               string `json:"gmail"`
+	Password            string `json:"password"`
+	Phone               string `json:"phone"`
+	FullName            string `json:"fullName"`
+	AllowsAdvertisement bool   `json:"allowsAdvertisement"`
+}
+
 type SignUpDTO struct {
 	Gmail               string `json:"gmail"`
 	Password            string `json:"password"`

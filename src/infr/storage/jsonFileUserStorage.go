@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"auth/src/application/dto"
 	"auth/src/domain/entities"
 	"encoding/json"
 	"fmt"
@@ -17,31 +18,38 @@ func NewUserJsonFileStorage(filePath string) *userJsonFileStorage {
 	return &userJsonFileStorage{filePath: filePath}
 }
 
-func (s userJsonFileStorage) Create(user entities.User) (entities.UserEntity, error) {
+func (s userJsonFileStorage) Create(createDto dto.CreateUserDTO) (entities.User, error) {
 	users, err := s.readUsersFromFile()
 	if err != nil {
-		return entities.UserEntity{}, err
+		return entities.User{}, err
 	}
 
-	userEntity := entities.UserEntity{ID: uuid.New().String(), User: user}
-	users = append(users, userEntity)
+	user := entities.User{
+		ID:                  uuid.New().String(),
+		Gmail:               createDto.Gmail,
+		Password:            createDto.Password,
+		Phone:               createDto.Phone,
+		FullName:            createDto.FullName,
+		AllowsAdvertisement: createDto.AllowsAdvertisement,
+	}
+	users = append(users, user)
 	err = s.writeUsersToFile(users)
 
 	if err != nil {
-		return entities.UserEntity{}, err
+		return entities.User{}, err
 	}
 
-	return userEntity, nil
+	return user, nil
 }
 
-func (s userJsonFileStorage) ReadAll() ([]entities.UserEntity, error) {
+func (s userJsonFileStorage) ReadAll() ([]entities.User, error) {
 	return s.readUsersFromFile()
 }
 
-func (s userJsonFileStorage) ByID(id string) (entities.UserEntity, error) {
+func (s userJsonFileStorage) ByID(id string) (entities.User, error) {
 	users, err := s.readUsersFromFile()
 	if err != nil {
-		return entities.UserEntity{}, err
+		return entities.User{}, err
 	}
 
 	for _, user := range users {
@@ -50,10 +58,10 @@ func (s userJsonFileStorage) ByID(id string) (entities.UserEntity, error) {
 		}
 	}
 
-	return entities.UserEntity{}, fmt.Errorf("user %s not found", id)
+	return entities.User{}, fmt.Errorf("user %s not found", id)
 }
 
-func (s userJsonFileStorage) Update(userToUpdate entities.UserEntity) error {
+func (s userJsonFileStorage) Update(userToUpdate entities.User) error {
 	users, err := s.readUsersFromFile()
 	if err != nil {
 		return err
@@ -102,14 +110,14 @@ func (s userJsonFileStorage) Delete(id string) error {
 	return nil
 }
 
-func (s userJsonFileStorage) readUsersFromFile() ([]entities.UserEntity, error) {
+func (s userJsonFileStorage) readUsersFromFile() ([]entities.User, error) {
 	file, err := os.Open(s.filePath)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	var users []entities.UserEntity
+	var users []entities.User
 	err = json.NewDecoder(file).Decode(&users)
 	if err != nil {
 		return nil, err
@@ -118,7 +126,7 @@ func (s userJsonFileStorage) readUsersFromFile() ([]entities.UserEntity, error) 
 	return users, nil
 }
 
-func (s userJsonFileStorage) writeUsersToFile(users []entities.UserEntity) error {
+func (s userJsonFileStorage) writeUsersToFile(users []entities.User) error {
 	file, err := os.Create(s.filePath)
 	if err != nil {
 		return err

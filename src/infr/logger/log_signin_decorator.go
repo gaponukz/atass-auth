@@ -7,7 +7,7 @@ import (
 )
 
 type signinService interface {
-	Login(string, string) (entities.UserEntity, error)
+	Login(string, string) (entities.User, error)
 }
 
 type logSigninService struct {
@@ -19,7 +19,7 @@ func NewLogSigninServiceDecorator(s signinService, l logger) logSigninService {
 	return logSigninService{s: s, l: l}
 }
 
-func (s logSigninService) Login(gmail string, password string) (entities.UserEntity, error) {
+func (s logSigninService) Login(gmail string, password string) (entities.User, error) {
 	user, err := s.s.Login(gmail, password)
 	if err != nil {
 		if err == errors.ErrUserNotFound {

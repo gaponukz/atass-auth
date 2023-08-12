@@ -1,8 +1,8 @@
 package signin
 
 import (
+	"auth/src/application/dto"
 	"auth/src/application/usecases/signin"
-	"auth/src/domain/entities"
 	"auth/tests/unit/mocks"
 	"testing"
 )
@@ -13,7 +13,7 @@ func TestLogin(t *testing.T) {
 
 	service := signin.NewSigninService(db, hash)
 
-	user, err := db.Create(entities.User{Gmail: "test@user.ua", Password: "12345", FullName: "Sometest"})
+	user, err := db.Create(dto.CreateUserDTO{Gmail: "test@user.ua", Password: "12345", FullName: "Sometest"})
 	if err != nil {
 		t.Error(err.Error())
 	}

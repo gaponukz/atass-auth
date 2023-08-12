@@ -14,12 +14,12 @@ func TestSendGeneratedCode(t *testing.T) {
 	const expectedCode = "12345"
 
 	sm := mocks.NewMockStorage()
-	notify := func(gmail string, key string) error { return nil }
+	notify := mocks.NewMockGmailNotifier()
 	generateCode := func() string { return expectedCode }
 	hash := func(s string) string { return s }
 	s := signup.NewRegistrationService(sm, nil, notify, generateCode, hash)
 
-	_, err := sm.Create(entities.User{Gmail: "user@gmail.com"})
+	_, err := sm.Create(dto.CreateUserDTO{Gmail: "user@gmail.com"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	u, err := utils.Find(users, func(user entities.UserEntity) bool {
+	u, err := utils.Find(users, func(user entities.User) bool {
 		return user.Gmail == testGmail
 	})
 	if err != nil {

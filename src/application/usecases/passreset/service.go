@@ -7,9 +7,13 @@ import (
 	"auth/src/utils"
 )
 
+type notifier interface {
+	NotifyUser(entities.User, string) error
+}
+
 type updateAndReadAbleStorage interface {
-	ReadAll() ([]entities.UserEntity, error)
-	Update(entities.UserEntity) error
+	ReadAll() ([]entities.User, error)
+	Update(entities.User) error
 }
 
 type gmailKeyPairStorage interface {
@@ -21,7 +25,7 @@ type gmailKeyPairStorage interface {
 type resetPasswordService struct {
 	temporaryStorage gmailKeyPairStorage
 	userStorage      updateAndReadAbleStorage
-	notify           func(gmail, key string) error
+	notifier         notifier
 	generateCode     func() string
 	hash             func(string) string
 }
@@ -29,14 +33,14 @@ type resetPasswordService struct {
 func NewResetPasswordService(
 	userStorage updateAndReadAbleStorage,
 	temporaryStorage gmailKeyPairStorage,
-	notify func(gmail, key string) error,
+	notifier notifier,
 	hash func(string) string,
 	generateCode func() string,
 ) *resetPasswordService {
 	return &resetPasswordService{
 		temporaryStorage: temporaryStorage,
 		userStorage:      userStorage,
-		notify:           notify,
+		notifier:         notifier,
 		generateCode:     generateCode,
 		hash:             hash,
 	}
@@ -48,15 +52,15 @@ func (s resetPasswordService) NotifyUser(userGmail string) (string, error) {
 		return "", err
 	}
 
-	isGmailExist := utils.IsExist(users, func(u entities.UserEntity) bool {
+	user, err := utils.Find(users, func(u entities.User) bool {
 		return u.Gmail == userGmail
 	})
-
-	if !isGmailExist {
+	if err != nil {
 		return "", errors.ErrUserNotFound
 	}
+
 	key := s.generateCode()
-	err = s.notify(userGmail, key)
+	err = s.notifier.NotifyUser(user, key)
 
 	return key, err
 }
@@ -85,7 +89,7 @@ func (s resetPasswordService) ChangeUserPassword(data dto.PasswordResetDTO) erro
 		return err
 	}
 
-	userToUpdate, err := utils.Find(users, func(u entities.UserEntity) bool {
+	userToUpdate, err := utils.Find(users, func(u entities.User) bool {
 		return u.Gmail == data.Gmail
 	})
 

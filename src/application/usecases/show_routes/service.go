@@ -3,7 +3,7 @@ package show_routes
 import "auth/src/domain/entities"
 
 type db interface {
-	ByID(string) (entities.UserEntity, error)
+	ByID(string) (entities.User, error)
 }
 
 type service struct {

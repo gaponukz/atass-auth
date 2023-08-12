@@ -3,7 +3,6 @@ package settings
 import (
 	"auth/src/application/dto"
 	"auth/src/application/usecases/settings"
-	"auth/src/domain/entities"
 	"auth/tests/unit/mocks"
 	"testing"
 )
@@ -12,7 +11,7 @@ func TestUpdate(t *testing.T) {
 	db := mocks.NewMockStorage()
 	service := settings.NewSettingsService(db)
 
-	user, err := db.Create(entities.User{Gmail: "test@gmail.com", Password: "12345", FullName: "Test1"})
+	user, err := db.Create(dto.CreateUserDTO{Gmail: "test@gmail.com", Password: "12345", FullName: "Test1"})
 	if err != nil {
 		t.Fatal(err.Error())
 	}

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"auth/src/application/dto"
 	"auth/src/domain/entities"
 	"encoding/json"
 	"fmt"
@@ -24,7 +25,7 @@ type sqlUserStorage struct {
 	db *gorm.DB
 }
 
-func fromProxyToUser(p dbProxyUser) entities.UserEntity {
+func fromProxyToUser(p dbProxyUser) entities.User {
 	var pathes []entities.Path
 
 	err := json.Unmarshal([]byte(p.PurchasedRouteIds), &pathes)
@@ -32,26 +33,22 @@ func fromProxyToUser(p dbProxyUser) entities.UserEntity {
 		pathes = nil
 	}
 
-	return entities.UserEntity{
-		ID: p.ID,
-		User: entities.User{
-			Gmail:               p.Gmail,
-			Password:            p.Password,
-			Phone:               p.Phone,
-			FullName:            p.FullName,
-			AllowsAdvertisement: p.AllowsAdvertisement,
-			PurchasedRouteIds:   pathes,
-		},
+	return entities.User{
+		ID:                  p.ID,
+		Gmail:               p.Gmail,
+		Password:            p.Password,
+		Phone:               p.Phone,
+		FullName:            p.FullName,
+		AllowsAdvertisement: p.AllowsAdvertisement,
+		PurchasedRouteIds:   pathes,
 	}
 }
 
-func fromUserToProxy(u entities.UserEntity) dbProxyUser {
-	var pathes string
+func fromUserToProxy(u entities.User) dbProxyUser {
+	var pathes string = "[]"
 
 	bPathes, err := json.Marshal(u.PurchasedRouteIds)
-	if err != nil {
-		pathes = "[]"
-	} else {
+	if err == nil {
 		pathes = string(bPathes)
 	}
 
@@ -95,27 +92,34 @@ func NewPostgresUserStorage(c PostgresCredentials) (*sqlUserStorage, error) {
 	}, nil
 }
 
-func (repo sqlUserStorage) Create(user entities.User) (entities.UserEntity, error) {
-	entity := entities.UserEntity{User: user, ID: uuid.New().String()}
+func (repo sqlUserStorage) Create(createDto dto.CreateUserDTO) (entities.User, error) {
+	entity := entities.User{
+		ID:                  uuid.New().String(),
+		Gmail:               createDto.Gmail,
+		Password:            createDto.Password,
+		Phone:               createDto.Phone,
+		FullName:            createDto.FullName,
+		AllowsAdvertisement: createDto.AllowsAdvertisement,
+	}
 	proxy := fromUserToProxy(entity)
 
 	result := repo.db.Create(&proxy)
 	if result.Error != nil {
-		return entities.UserEntity{}, fmt.Errorf("Can not create user %s: %v", user.Gmail, result.Error)
+		return entities.User{}, fmt.Errorf("can not create user %s: %v", createDto.Gmail, result.Error)
 	}
 
 	return entity, nil
 }
 
-func (repo sqlUserStorage) ReadAll() ([]entities.UserEntity, error) {
+func (repo sqlUserStorage) ReadAll() ([]entities.User, error) {
 	var proxies []dbProxyUser
 
 	result := repo.db.Find(&proxies)
 	if result.Error != nil {
-		return nil, fmt.Errorf("Can not get all users: %v", result.Error)
+		return nil, fmt.Errorf("can not get all users: %v", result.Error)
 	}
 
-	users := make([]entities.UserEntity, len(proxies))
+	users := make([]entities.User, len(proxies))
 
 	for i, proxy := range proxies {
 		users[i] = fromProxyToUser(proxy)
@@ -124,23 +128,23 @@ func (repo sqlUserStorage) ReadAll() ([]entities.UserEntity, error) {
 	return users, nil
 }
 
-func (repo sqlUserStorage) ByID(id string) (entities.UserEntity, error) {
+func (repo sqlUserStorage) ByID(id string) (entities.User, error) {
 	var proxy dbProxyUser
 
 	result := repo.db.Where("id = ?", id).First(&proxy)
 	if result.Error != nil {
-		return entities.UserEntity{}, fmt.Errorf("Can not get by id %s: %v", id, result.Error)
+		return entities.User{}, fmt.Errorf("can not get by id %s: %v", id, result.Error)
 	}
 
 	return fromProxyToUser(proxy), nil
 }
 
-func (repo sqlUserStorage) Update(userToUpdate entities.UserEntity) error {
+func (repo sqlUserStorage) Update(userToUpdate entities.User) error {
 	proxy := fromUserToProxy(userToUpdate)
 
 	result := repo.db.Save(&proxy)
 	if result.Error != nil {
-		return fmt.Errorf("Can not update %s: %v", userToUpdate.ID, result.Error)
+		return fmt.Errorf("can not update %s: %v", userToUpdate.ID, result.Error)
 	}
 
 	return nil
@@ -150,7 +154,7 @@ func (repo sqlUserStorage) Delete(id string) error {
 	result := repo.db.Where("id = ?", id).Delete(&dbProxyUser{})
 
 	if result.Error != nil {
-		return fmt.Errorf("Can not delete %s: %v", id, result.Error)
+		return fmt.Errorf("can not delete %s: %v", id, result.Error)
 	}
 
 	return nil

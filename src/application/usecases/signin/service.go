@@ -7,8 +7,8 @@ import (
 )
 
 type repository interface {
-	ByID(string) (entities.UserEntity, error)
-	ReadAll() ([]entities.UserEntity, error)
+	ByID(string) (entities.User, error)
+	ReadAll() ([]entities.User, error)
 }
 
 type signinService struct {
@@ -20,17 +20,17 @@ func NewSigninService(db repository, hash func(string) string) signinService {
 	return signinService{db: db, hash: hash}
 }
 
-func (s signinService) Login(gmail, password string) (entities.UserEntity, error) {
+func (s signinService) Login(gmail, password string) (entities.User, error) {
 	users, err := s.db.ReadAll()
 	if err != nil {
-		return entities.UserEntity{}, err
+		return entities.User{}, err
 	}
 
-	user, err := utils.Find(users, func(u entities.UserEntity) bool {
+	user, err := utils.Find(users, func(u entities.User) bool {
 		return u.Gmail == gmail && u.Password == s.hash(password)
 	})
 	if err != nil {
-		return entities.UserEntity{}, errors.ErrUserNotFound
+		return entities.User{}, errors.ErrUserNotFound
 	}
 
 	return user, nil
