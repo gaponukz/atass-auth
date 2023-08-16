@@ -78,7 +78,7 @@ jobs:
       id: start-containers
       run: |
         docker-compose -f "docker-compose-test.yml" up -d --build
-        sleep 30
+        sleep 60
         docker-compose -f "docker-compose-test.yml" logs
 
     - name: Install Python and pytest
