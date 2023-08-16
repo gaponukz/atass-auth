@@ -2,6 +2,7 @@ package event_handler
 
 import (
 	"auth/src/domain/entities"
+	"auth/src/domain/events"
 	"encoding/json"
 	"fmt"
 
@@ -32,9 +33,9 @@ func NewRoutesEventsListener(s routesService, rabbitUrl string) (*routesEventsLi
 	}
 
 	err = ch.QueueBind(
-		"passenger_payments",
+		"events",
 		"",
-		"payments_exchange",
+		"events_exchange",
 		false,
 		nil,
 	)
@@ -44,13 +45,13 @@ func NewRoutesEventsListener(s routesService, rabbitUrl string) (*routesEventsLi
 		return nil, err
 	}
 	msgs, err := ch.Consume(
-		"passenger_payments", // queue
-		"",                   // consumer
-		true,                 // auto-ack
-		false,                // exclusive
-		false,                // no-local
-		false,                // no-wait
-		nil,                  // args
+		"events", // queue
+		"",       // consumer
+		true,     // auto-ack
+		false,    // exclusive
+		false,    // no-local
+		false,    // no-wait
+		nil,      // args
 	)
 	if err != nil {
 		_ = ch.Close()
@@ -66,35 +67,21 @@ func (r routesEventsListener) Listen() {
 
 	go func() {
 		for d := range r.msgs {
-			var data map[string]interface{}
+			var event events.BookingEvent
 
-			err := json.Unmarshal(d.Body, &data)
+			err := json.Unmarshal(d.Body, &event)
 			if err != nil {
 				fmt.Printf("Error parsing JSON: %v\n", err)
 			}
 
-			routeID, ok := data["routeId"].(string)
-			if !ok {
-				fmt.Printf("Error parsing JSON: no 'routeId' field\n")
-			}
-			passenger, ok := data["passenger"].(map[string]interface{})
-			if !ok {
-				fmt.Printf("Error parsing JSON: no 'passenger' field\n")
-			}
-			passengerID, ok := passenger["id"].(string)
-			if !ok {
-				fmt.Printf("Error parsing JSON: no 'passenger.id' field\n")
-			}
-			moveFrom, ok := passenger["movingFromId"].(string)
-			if !ok {
-				fmt.Printf("Error parsing JSON: no 'passenger.movingFromId' field\n")
-			}
-			moveTo, ok := passenger["movingTowardsId"].(string)
-			if !ok {
-				fmt.Printf("Error parsing JSON: no 'passenger.movingTowardsId' field\n")
-			}
-
-			_ = r.service.AddRoute(passengerID, entities.Path{RootRouteID: routeID, MoveFromID: moveFrom, MoveToID: moveTo})
+			_ = r.service.AddRoute(
+				event.PassengerID,
+				entities.Path{
+					RootRouteID: event.RouteID,
+					MoveFromID:  event.MoveFromID,
+					MoveToID:    event.MoveToID,
+				},
+			)
 		}
 	}()
 	<-forever
