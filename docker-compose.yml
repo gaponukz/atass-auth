@@ -29,6 +29,7 @@ services:
       - ./mysql-data:/var/lib/mysql
 
   app:
+    restart: on-failure:5 
     build:
       context: .
       dockerfile: Dockerfile

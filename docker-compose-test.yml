@@ -27,6 +27,7 @@ services:
       - "3306:3306"
 
   app:
+    restart: on-failure:5 
     build:
       context: .
       dockerfile: Dockerfile_test
