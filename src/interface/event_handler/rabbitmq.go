@@ -9,18 +9,23 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type routesService interface {
+type addRouteService interface {
 	AddRoute(userID string, path entities.Path) error
 }
 
-type routesEventsListener struct {
-	service routesService
-	conn    *amqp.Connection
-	ch      *amqp.Channel
-	msgs    <-chan amqp.Delivery
+type deleteRouteService interface {
+	DeleteRoute(string, entities.Path) error
 }
 
-func NewRoutesEventsListener(s routesService, rabbitUrl string) (*routesEventsListener, error) {
+type routesEventsListener struct {
+	addRouteService    addRouteService
+	deleteRouteService deleteRouteService
+	conn               *amqp.Connection
+	ch                 *amqp.Channel
+	msgs               <-chan amqp.Delivery
+}
+
+func NewRoutesEventsListener(as addRouteService, ds deleteRouteService, rabbitUrl string) (*routesEventsListener, error) {
 	conn, err := amqp.Dial(rabbitUrl)
 	if err != nil {
 		return nil, err
@@ -59,7 +64,7 @@ func NewRoutesEventsListener(s routesService, rabbitUrl string) (*routesEventsLi
 		return nil, err
 	}
 
-	return &routesEventsListener{service: s, conn: conn, ch: ch, msgs: msgs}, nil
+	return &routesEventsListener{addRouteService: as, deleteRouteService: ds, conn: conn, ch: ch, msgs: msgs}, nil
 }
 
 func (r routesEventsListener) Listen() {
@@ -74,14 +79,27 @@ func (r routesEventsListener) Listen() {
 				fmt.Printf("Error parsing JSON: %v\n", err)
 			}
 
-			_ = r.service.AddRoute(
-				event.PassengerID,
-				entities.Path{
-					RootRouteID: event.RouteID,
-					MoveFromID:  event.MoveFromID,
-					MoveToID:    event.MoveToID,
-				},
-			)
+			switch event.EventType {
+			case "booked":
+				_ = r.addRouteService.AddRoute(
+					event.PassengerID,
+					entities.Path{
+						RootRouteID: event.RouteID,
+						MoveFromID:  event.MoveFromID,
+						MoveToID:    event.MoveToID,
+					},
+				)
+
+			case "removed":
+				_ = r.deleteRouteService.DeleteRoute(
+					event.PassengerID,
+					entities.Path{
+						RootRouteID: event.RouteID,
+						MoveFromID:  event.MoveFromID,
+						MoveToID:    event.MoveToID,
+					},
+				)
+			}
 		}
 	}()
 	<-forever
