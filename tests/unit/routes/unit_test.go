@@ -11,7 +11,7 @@ import (
 
 func TestAddRoute(t *testing.T) {
 	db := mocks.NewMockStorage()
-	service := routes.NewRoutesService(db)
+	service := routes.NewAddRouteService(db)
 
 	err := service.AddRoute("1", entities.Path{RootRouteID: "123", MoveFromID: "1", MoveToID: "2"})
 	if err != errors.ErrUserNotFound {

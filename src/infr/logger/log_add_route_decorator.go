@@ -5,25 +5,20 @@ import (
 	"fmt"
 )
 
-type routesService interface {
+type addRouteService interface {
 	AddRoute(string, entities.Path) error
 }
 
-type logger interface {
-	Error(string)
-	Info(string)
-}
-
-type logRoutesService struct {
-	s routesService
+type logAddRouteService struct {
+	s addRouteService
 	l logger
 }
 
-func NewLogAddRouteDecorator(s routesService, l logger) logRoutesService {
-	return logRoutesService{s: s, l: l}
+func NewLogAddRouteDecorator(s addRouteService, l logger) logAddRouteService {
+	return logAddRouteService{s: s, l: l}
 }
 
-func (s logRoutesService) AddRoute(userID string, path entities.Path) error {
+func (s logAddRouteService) AddRoute(userID string, path entities.Path) error {
 	err := s.s.AddRoute(userID, path)
 	if err != nil {
 		s.l.Error(fmt.Sprintf("Can not add route %s to user %s: %v", path.RootRouteID, userID, err))

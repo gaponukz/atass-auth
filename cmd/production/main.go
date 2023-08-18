@@ -53,12 +53,14 @@ func main() {
 	signupService := logger.NewLogSignupServiceDecorator(signup.NewRegistrationService(userStorage, futureUserStor, signupNotifier, security.GenerateCode, hash), logging)
 	passwordResetingService := logger.NewLogResetPasswordServiceDecorator(passreset.NewResetPasswordService(userStorage, resetPassStor, passresetNotifier, hash, security.GenerateCode), logging)
 	settingsService := logger.NewLogSettingsServiceDecorator(settings.NewSettingsService(userStorage), logging)
-	routesService := logger.NewLogAddRouteDecorator(routes.NewRoutesService(userStorage), logging)
+	addRouteService := logger.NewLogAddRouteDecorator(routes.NewAddRouteService(userStorage), logging)
+	deleteRouteService := logger.NewLogDeleteRouteDecorator(routes.NewDeleteRouteService(userStorage), logging)
 	showRoutesService := show_routes.NewShowRoutesService(userStorage)
 	sessionService := session.NewSessionService(setting.JwtSecret)
 
 	contr := controller.NewController(signinService, signupService, passwordResetingService, settingsService, showRoutesService, sessionService)
-	routesEventsListener, err := event_handler.NewRoutesEventsListener(routesService, setting.RabbitUrl)
+
+	routesEventsListener, err := event_handler.NewRoutesEventsListener(addRouteService, deleteRouteService, setting.RabbitUrl)
 	if err != nil {
 		panic(err.Error())
 	}
