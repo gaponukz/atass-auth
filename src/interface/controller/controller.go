@@ -109,6 +109,7 @@ func (c Controller) Signin(responseWriter http.ResponseWriter, request *http.Req
 		Name:    "token",
 		Value:   token,
 		Expires: expirationTime,
+		Path:    "/",
 	})
 }
 
@@ -179,6 +180,7 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 		Name:    "token",
 		Value:   token,
 		Expires: expirationTime,
+		Path:    "/",
 	})
 }
 
@@ -208,6 +210,7 @@ func (c Controller) Refresh(responseWriter http.ResponseWriter, request *http.Re
 		Name:    "token",
 		Value:   newToken,
 		Expires: expirationTime,
+		Path:    "/",
 	})
 }
 
@@ -215,6 +218,7 @@ func (c Controller) Logout(responseWriter http.ResponseWriter, request *http.Req
 	http.SetCookie(responseWriter, &http.Cookie{
 		Name:    "token",
 		Expires: time.Now(),
+		Path:    "/",
 	})
 }
 
@@ -334,6 +338,7 @@ func (c Controller) UpdateUserInfo(responseWriter http.ResponseWriter, request *
 		Name:    "token",
 		Value:   newToken,
 		Expires: expirationTime,
+		Path:    "/",
 	})
 }
 
