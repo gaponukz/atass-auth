@@ -22,7 +22,7 @@ def session():
 @pytest.mark.usefixtures('session')
 class TestAPI:
     def test_signup(self, session: requests.Session):
-        response = session.post(f'{api_url}/signup', json={"gmail": user.gmail})
+        response = session.post(f'{api_url}/api/auth/signup', json={"gmail": user.gmail})
         assert response.status_code == 200
 
     def test_confirm_registration(self, session: requests.Session):
@@ -30,21 +30,21 @@ class TestAPI:
         json = user.to_json()
         
         json['key'] = "wrongcode"
-        response = session.post(f'{api_url}/confirmRegistration', json=json)
+        response = session.post(f'{api_url}/api/auth/confirmRegistration', json=json)
         assert response.status_code != 200
 
         json['key'] = "12345"
-        response = session.post(f'{api_url}/confirmRegistration', json=json)
+        response = session.post(f'{api_url}/api/auth/confirmRegistration', json=json)
         assert response.status_code == 200
         assert session.cookies.get("token") is not None
 
     def test_logout(self, session: requests.Session):
-        response = session.get(f'{api_url}/logout')
+        response = session.get(f'{api_url}/api/auth/logout')
         assert response.status_code == 200
         assert session.cookies.get("token") is None
 
     def test_signin_with_wrong_password(self, session: requests.Session):
-        response = session.post(f'{api_url}/signin', json={
+        response = session.post(f'{api_url}/api/auth/signin', json={
             "gmail": user.gmail,
             "password": "wrongpassword",
             "rememberHim": True
@@ -52,7 +52,7 @@ class TestAPI:
         assert response.status_code == 401
 
     def test_signin(self, session: requests.Session):
-        response = session.post(f'{api_url}/signin', json={
+        response = session.post(f'{api_url}/api/auth/signin', json={
             "gmail": user.gmail,
             "password": user.password,
             "rememberHim": True
@@ -61,7 +61,7 @@ class TestAPI:
         assert session.cookies.get("token") is not None
 
     def test_get_user_info(self, session: requests.Session):
-        response = session.get(f'{api_url}/getUserInfo')
+        response = session.get(f'{api_url}/api/auth/getUserInfo')
         assert response.status_code == 200
         data = response.json()
 
@@ -71,12 +71,12 @@ class TestAPI:
         assert data['allowsAdvertisement'] == user.allows_advertisement
     
     def test_reset_password(self, session: requests.Session):
-        response = session.post(f'{api_url}/resetPassword', json={"gmail": user.gmail})
+        response = session.post(f'{api_url}/api/auth/resetPassword', json={"gmail": user.gmail})
         assert response.status_code == 200
 
         user.password = "newpassword"
     
-        response = session.post(f'{api_url}/confirmResetPassword', json={
+        response = session.post(f'{api_url}/api/auth/confirmResetPassword', json={
             "gmail": user.gmail,
             "password": user.password,
             "key": "wrongcode"
@@ -84,7 +84,7 @@ class TestAPI:
 
         assert response.status_code != 200
 
-        response = session.post(f'{api_url}/confirmResetPassword', json={
+        response = session.post(f'{api_url}/api/auth/confirmResetPassword', json={
             "gmail": user.gmail,
             "password": user.password,
             "key": "12345"
@@ -93,7 +93,7 @@ class TestAPI:
         assert response.status_code == 200
 
     def test_login_with_new_password(self, session: requests.Session):
-        response = session.post(f'{api_url}/signin', json={
+        response = session.post(f'{api_url}/api/auth/signin', json={
             "gmail": user.gmail,
             "password": user.password,
             "rememberHim": True
@@ -106,7 +106,7 @@ class TestAPI:
         user.phone = "38001101010"
         user.allows_advertisement = not user.allows_advertisement
 
-        response = session.post(f'{api_url}/updateUserInfo', json={
+        response = session.post(f'{api_url}/api/auth/updateUserInfo', json={
             "fullName": user.full_name,
             "phone": user.phone,
             "allowsAdvertisement": user.allows_advertisement
@@ -114,7 +114,7 @@ class TestAPI:
 
         assert response.status_code == 200
 
-        response = session.get(f'{api_url}/getUserInfo')
+        response = session.get(f'{api_url}/api/auth/getUserInfo')
         data = response.json()
 
         assert data['fullName'] == user.full_name

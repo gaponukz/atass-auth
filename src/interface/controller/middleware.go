@@ -47,18 +47,18 @@ func enableCORS(handler http.Handler) http.Handler {
 func getMuxFromController(c *Controller) *http.ServeMux {
 	httpRoute := http.NewServeMux()
 
-	httpRoute.HandleFunc("/signup", requiredMethod(c.Signup, http.MethodPost))
-	httpRoute.HandleFunc("/confirmRegistration", requiredMethod(c.ConfirmRegistration, http.MethodPost))
-	httpRoute.HandleFunc("/signin", requiredMethod(c.Signin, http.MethodPost))
-	httpRoute.HandleFunc("/resetPassword", requiredMethod(c.ResetPassword, http.MethodPost))
-	httpRoute.HandleFunc("/confirmResetPassword", requiredMethod(c.ConfirmResetPassword, http.MethodPost))
-	httpRoute.HandleFunc("/cancelPasswordResetting", requiredMethod(c.CancelPasswordResetting, http.MethodPost))
-	httpRoute.HandleFunc("/logout", c.Logout)
-	httpRoute.HandleFunc("/refresh", c.Refresh)
+	httpRoute.HandleFunc("/api/auth/signup", requiredMethod(c.Signup, http.MethodPost))
+	httpRoute.HandleFunc("/api/auth/confirmRegistration", requiredMethod(c.ConfirmRegistration, http.MethodPost))
+	httpRoute.HandleFunc("/api/auth/signin", requiredMethod(c.Signin, http.MethodPost))
+	httpRoute.HandleFunc("/api/auth/resetPassword", requiredMethod(c.ResetPassword, http.MethodPost))
+	httpRoute.HandleFunc("/api/auth/confirmResetPassword", requiredMethod(c.ConfirmResetPassword, http.MethodPost))
+	httpRoute.HandleFunc("/api/auth/cancelPasswordResetting", requiredMethod(c.CancelPasswordResetting, http.MethodPost))
+	httpRoute.HandleFunc("/api/auth/logout", c.Logout)
+	httpRoute.HandleFunc("/api/auth/refresh", c.Refresh)
 
-	httpRoute.HandleFunc("/getUserRoutes", c.ShowUserRoutes)
-	httpRoute.HandleFunc("/getUserInfo", c.GetUserInfo)
-	httpRoute.HandleFunc("/updateUserInfo", requiredMethod(c.UpdateUserInfo, http.MethodPost))
+	httpRoute.HandleFunc("/api/auth/getUserRoutes", c.ShowUserRoutes)
+	httpRoute.HandleFunc("/api/auth/getUserInfo", c.GetUserInfo)
+	httpRoute.HandleFunc("/api/auth/updateUserInfo", requiredMethod(c.UpdateUserInfo, http.MethodPost))
 
 	return httpRoute
 }
