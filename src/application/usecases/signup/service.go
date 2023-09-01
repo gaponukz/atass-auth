@@ -6,6 +6,7 @@ import (
 	"auth/src/domain/errors"
 	"auth/src/utils"
 	"regexp"
+	"strings"
 	"unicode"
 )
 
@@ -118,12 +119,17 @@ func (s registrationService) IsPasswordValid(password string) bool {
 	return hasUppercase && hasLowercase && hasSpecialChar
 }
 
-func IsPhoneNumberValid(phoneNumber string) bool {
-	phoneRegex := regexp.MustCompile(`^(\+)?\d+$`)
+func (s registrationService) IsPhoneNumberValid(phoneNumber string) bool {
+	phoneRegex := regexp.MustCompile(`^(\+)?(\d+\s?)+$`)
+
+	if len(strings.Replace(phoneNumber, " ", "", -1)) > 15 {
+		return false
+	}
+
 	return phoneRegex.MatchString(phoneNumber)
 }
 
-func IsFullNameValid(fullName string) bool {
+func (s registrationService) IsFullNameValid(fullName string) bool {
 	fullNameRegex := regexp.MustCompile(`^[a-zA-Z]{3,} [a-zA-Z]{3,}$`)
 	return fullNameRegex.MatchString(fullName)
 }

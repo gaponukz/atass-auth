@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestValidations(t *testing.T) {
+func TestPasswordValidation(t *testing.T) {
 	s := signup.NewRegistrationService(nil, nil, nil, nil, nil)
 	cases := []struct {
 		password string
@@ -30,6 +30,27 @@ func TestValidations(t *testing.T) {
 
 	for _, test := range cases {
 		if s.IsPasswordValid(test.password) != test.isValid {
+			t.Errorf("For %s got %t expected %t", test.password, !test.isValid, test.isValid)
+		}
+	}
+}
+
+func TestPhoneValidations(t *testing.T) {
+	s := signup.NewRegistrationService(nil, nil, nil, nil, nil)
+	cases := []struct {
+		password string
+		isValid  bool
+	}{
+		{"o984516456", false},
+		{"0984516456", true},
+		{"380984516456", true},
+		{"-380984516456", false},
+		{"+380 66 538 29 59", true},
+		{"5823946528346592384652375", false},
+	}
+
+	for _, test := range cases {
+		if s.IsPhoneNumberValid(test.password) != test.isValid {
 			t.Errorf("For %s got %t expected %t", test.password, !test.isValid, test.isValid)
 		}
 	}
