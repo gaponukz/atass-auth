@@ -95,7 +95,7 @@ func (s registrationService) RegisterUserOnRightCode(user dto.SignUpDTO) (string
 
 func (s registrationService) IsPasswordValid(password string) bool {
 	const minLength = 8
-	var hasUppercase, hasLowercase, hasDigit, hasSpecialChar bool
+	var hasUppercase, hasLowercase, hasSpecialChar bool
 
 	specialCharRegex := regexp.MustCompile(`[!@#$%^&*()-_+=\[\]{}|:;"'<>,.?/~]`)
 
@@ -104,21 +104,18 @@ func (s registrationService) IsPasswordValid(password string) bool {
 	}
 
 	for _, char := range password {
-		if !hasUppercase && unicode.IsUpper(char) {
+		if unicode.IsUpper(char) {
 			hasUppercase = true
 		}
-		if !hasLowercase && unicode.IsLower(char) {
+		if unicode.IsLower(char) {
 			hasLowercase = true
 		}
-		if !hasDigit && unicode.IsDigit(char) {
-			hasDigit = true
-		}
-		if !hasSpecialChar && specialCharRegex.MatchString(string(char)) {
+		if specialCharRegex.MatchString(string(char)) || unicode.IsDigit(char) {
 			hasSpecialChar = true
 		}
 	}
 
-	return hasUppercase && hasLowercase && hasDigit && hasSpecialChar
+	return hasUppercase && hasLowercase && hasSpecialChar
 }
 
 func IsPhoneNumberValid(phoneNumber string) bool {

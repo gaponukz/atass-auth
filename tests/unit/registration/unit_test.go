@@ -10,6 +10,31 @@ import (
 	"testing"
 )
 
+func TestValidations(t *testing.T) {
+	s := signup.NewRegistrationService(nil, nil, nil, nil, nil)
+	cases := []struct {
+		password string
+		isValid  bool
+	}{
+		{"12345", false},
+		{"Ab1$", false},
+		{"aB1$cdEf", true},
+		{"P@ss", false},
+		{"ABCD1234", false},
+		{"p@ssword", false},
+		{"PASSWORD1234", false},
+		{"P@ssw0rd1234567890", true},
+		{"P@ssw0rd123", true},
+		{"Speci1al$Character", true},
+	}
+
+	for _, test := range cases {
+		if s.IsPasswordValid(test.password) != test.isValid {
+			t.Errorf("For %s got %t expected %t", test.password, !test.isValid, test.isValid)
+		}
+	}
+}
+
 func TestSendGeneratedCode(t *testing.T) {
 	const expectedCode = "12345"
 
