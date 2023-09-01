@@ -79,6 +79,16 @@ func (s registrationService) RegisterUserOnRightCode(user dto.SignUpDTO) (string
 		return "", errors.ErrRegisterRequestMissing
 	}
 
+	if !s.IsFullNameValid(user.FullName) {
+		return "", errors.ErrUserNotValid
+	}
+	if !s.IsPhoneNumberValid(user.Phone) {
+		return "", errors.ErrUserNotValid
+	}
+	if !s.IsPasswordValid(user.Password) {
+		return "", errors.ErrUserNotValid
+	}
+
 	user.Password = s.hash(user.Password)
 	newUser, err := s.userStorage.Create(dto.CreateUserDTO{
 		Gmail:               user.Gmail,

@@ -16,6 +16,7 @@ func TestPasswordValidation(t *testing.T) {
 		password string
 		isValid  bool
 	}{
+		{"qweasdzxcQ1", true},
 		{"12345", false},
 		{"Ab1$", false},
 		{"aB1$cdEf", true},
@@ -161,14 +162,13 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 
 	const testGmail = "test@gmail.com"
 	pair := dto.GmailWithKeyPairDTO{Gmail: testGmail, Key: "12345"}
-	user := entities.User{Gmail: testGmail}
 
 	err := tsm.Create(pair)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = s.RegisterUserOnRightCode(dto.SignUpDTO{Gmail: testGmail, Key: "12345"})
+	_, err = s.RegisterUserOnRightCode(dto.SignUpDTO{Gmail: testGmail, Key: "12345", Password: "qweasdzxcQ1", FullName: "So Va", Phone: "0984516456"})
 	if err != nil {
 		t.Errorf("RegisterUserOnRightCode error: %v", err)
 	}
@@ -191,6 +191,6 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 	}
 
 	if u.Gmail != testGmail {
-		t.Errorf("after register expected %s, got %s", testGmail, user.Gmail)
+		t.Errorf("after register expected %s, got %s", testGmail, u.Gmail)
 	}
 }
