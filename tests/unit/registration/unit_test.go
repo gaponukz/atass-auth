@@ -10,6 +10,74 @@ import (
 	"testing"
 )
 
+func TestPasswordValidation(t *testing.T) {
+	s := signup.NewRegistrationService(nil, nil, nil, nil, nil)
+	cases := []struct {
+		password string
+		isValid  bool
+	}{
+		{"qweasdzxcQ1", true},
+		{"12345", false},
+		{"Ab1$", false},
+		{"aB1$cdEf", true},
+		{"P@ss", false},
+		{"ABCD1234", false},
+		{"p@ssword", false},
+		{"PASSWORD1234", false},
+		{"P@ssw0rd1234567890", true},
+		{"P@ssw0rd123", true},
+		{"Speci1al$Character", true},
+	}
+
+	for _, test := range cases {
+		if s.IsPasswordValid(test.password) != test.isValid {
+			t.Errorf("For %s got %t expected %t", test.password, !test.isValid, test.isValid)
+		}
+	}
+}
+
+func TestPhoneValidations(t *testing.T) {
+	s := signup.NewRegistrationService(nil, nil, nil, nil, nil)
+	cases := []struct {
+		password string
+		isValid  bool
+	}{
+		{"o984516456", false},
+		{"0984516456", true},
+		{"380984516456", true},
+		{"-380984516456", false},
+		{"+380 66 538 29 59", true},
+		{"5823946528346592384652375", false},
+	}
+
+	for _, test := range cases {
+		if s.IsPhoneNumberValid(test.password) != test.isValid {
+			t.Errorf("For %s got %t expected %t", test.password, !test.isValid, test.isValid)
+		}
+	}
+}
+
+func TestFullNameValidations(t *testing.T) {
+	s := signup.NewRegistrationService(nil, nil, nil, nil, nil)
+	cases := []struct {
+		password string
+		isValid  bool
+	}{
+		{"", false},
+		{"Alex Was", true},
+		{"Sam", false},
+		{"Sam A", false},
+		{"Sam Awrt", true},
+		{"Sa Wa", true},
+	}
+
+	for _, test := range cases {
+		if s.IsFullNameValid(test.password) != test.isValid {
+			t.Errorf("For %s got %t expected %t", test.password, !test.isValid, test.isValid)
+		}
+	}
+}
+
 func TestSendGeneratedCode(t *testing.T) {
 	const expectedCode = "12345"
 
@@ -94,14 +162,13 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 
 	const testGmail = "test@gmail.com"
 	pair := dto.GmailWithKeyPairDTO{Gmail: testGmail, Key: "12345"}
-	user := entities.User{Gmail: testGmail}
 
 	err := tsm.Create(pair)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = s.RegisterUserOnRightCode(dto.SignUpDTO{Gmail: testGmail, Key: "12345"})
+	_, err = s.RegisterUserOnRightCode(dto.SignUpDTO{Gmail: testGmail, Key: "12345", Password: "qweasdzxcQ1", FullName: "So Va", Phone: "0984516456"})
 	if err != nil {
 		t.Errorf("RegisterUserOnRightCode error: %v", err)
 	}
@@ -124,6 +191,6 @@ func TestRegisterUserOnRightCode(t *testing.T) {
 	}
 
 	if u.Gmail != testGmail {
-		t.Errorf("after register expected %s, got %s", testGmail, user.Gmail)
+		t.Errorf("after register expected %s, got %s", testGmail, u.Gmail)
 	}
 }

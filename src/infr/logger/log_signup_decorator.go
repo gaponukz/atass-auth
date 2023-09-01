@@ -50,6 +50,9 @@ func (s logSignupService) RegisterUserOnRightCode(d dto.SignUpDTO) (string, erro
 		if err == errors.ErrRegisterRequestMissing {
 			return id, err
 		}
+		if err == errors.ErrUserNotValid {
+			return id, err
+		}
 
 		s.l.Error(fmt.Sprintf("Can not register %s with right code: %v", d.Gmail, err))
 		return id, err

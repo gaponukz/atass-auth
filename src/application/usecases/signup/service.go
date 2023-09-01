@@ -5,6 +5,9 @@ import (
 	"auth/src/domain/entities"
 	"auth/src/domain/errors"
 	"auth/src/utils"
+	"regexp"
+	"strings"
+	"unicode"
 )
 
 type notifier interface {
@@ -76,6 +79,16 @@ func (s registrationService) RegisterUserOnRightCode(user dto.SignUpDTO) (string
 		return "", errors.ErrRegisterRequestMissing
 	}
 
+	if !s.IsFullNameValid(user.FullName) {
+		return "", errors.ErrUserNotValid
+	}
+	if !s.IsPhoneNumberValid(user.Phone) {
+		return "", errors.ErrUserNotValid
+	}
+	if !s.IsPasswordValid(user.Password) {
+		return "", errors.ErrUserNotValid
+	}
+
 	user.Password = s.hash(user.Password)
 	newUser, err := s.userStorage.Create(dto.CreateUserDTO{
 		Gmail:               user.Gmail,
@@ -89,4 +102,44 @@ func (s registrationService) RegisterUserOnRightCode(user dto.SignUpDTO) (string
 	}
 
 	return newUser.ID, nil
+}
+
+func (s registrationService) IsPasswordValid(password string) bool {
+	const minLength = 8
+	var hasUppercase, hasLowercase, hasSpecialChar bool
+
+	specialCharRegex := regexp.MustCompile(`[!@#$%^&*()-_+=\[\]{}|:;"'<>,.?/~]`)
+
+	if len(password) < minLength {
+		return false
+	}
+
+	for _, char := range password {
+		if unicode.IsUpper(char) {
+			hasUppercase = true
+		}
+		if unicode.IsLower(char) {
+			hasLowercase = true
+		}
+		if specialCharRegex.MatchString(string(char)) || unicode.IsDigit(char) {
+			hasSpecialChar = true
+		}
+	}
+
+	return hasUppercase && hasLowercase && hasSpecialChar
+}
+
+func (s registrationService) IsPhoneNumberValid(phoneNumber string) bool {
+	phoneRegex := regexp.MustCompile(`^(\+)?(\d+\s?)+$`)
+
+	if len(strings.Replace(phoneNumber, " ", "", -1)) > 15 {
+		return false
+	}
+
+	return phoneRegex.MatchString(phoneNumber)
+}
+
+func (s registrationService) IsFullNameValid(fullName string) bool {
+	fullNameRegex := regexp.MustCompile(`^[a-zA-Z]{2,} [a-zA-Z]{2,}$`)
+	return fullNameRegex.MatchString(fullName)
 }
