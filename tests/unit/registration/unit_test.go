@@ -56,6 +56,27 @@ func TestPhoneValidations(t *testing.T) {
 	}
 }
 
+func TestFullNameValidations(t *testing.T) {
+	s := signup.NewRegistrationService(nil, nil, nil, nil, nil)
+	cases := []struct {
+		password string
+		isValid  bool
+	}{
+		{"", false},
+		{"Alex Was", true},
+		{"Sam", false},
+		{"Sam A", false},
+		{"Sam Awrt", true},
+		{"Sa Wa", true},
+	}
+
+	for _, test := range cases {
+		if s.IsFullNameValid(test.password) != test.isValid {
+			t.Errorf("For %s got %t expected %t", test.password, !test.isValid, test.isValid)
+		}
+	}
+}
+
 func TestSendGeneratedCode(t *testing.T) {
 	const expectedCode = "12345"
 

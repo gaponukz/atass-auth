@@ -130,6 +130,6 @@ func (s registrationService) IsPhoneNumberValid(phoneNumber string) bool {
 }
 
 func (s registrationService) IsFullNameValid(fullName string) bool {
-	fullNameRegex := regexp.MustCompile(`^[a-zA-Z]{3,} [a-zA-Z]{3,}$`)
+	fullNameRegex := regexp.MustCompile(`^[a-zA-Z]{2,} [a-zA-Z]{2,}$`)
 	return fullNameRegex.MatchString(fullName)
 }
