@@ -5,6 +5,8 @@ import (
 	"auth/src/domain/entities"
 	"auth/src/domain/errors"
 	"auth/src/utils"
+	"regexp"
+	"unicode"
 )
 
 type notifier interface {
@@ -89,4 +91,42 @@ func (s registrationService) RegisterUserOnRightCode(user dto.SignUpDTO) (string
 	}
 
 	return newUser.ID, nil
+}
+
+func (s registrationService) IsPasswordValid(password string) bool {
+	const minLength = 8
+	var hasUppercase, hasLowercase, hasDigit, hasSpecialChar bool
+
+	specialCharRegex := regexp.MustCompile(`[!@#$%^&*()-_+=\[\]{}|:;"'<>,.?/~]`)
+
+	if len(password) < minLength {
+		return false
+	}
+
+	for _, char := range password {
+		if !hasUppercase && unicode.IsUpper(char) {
+			hasUppercase = true
+		}
+		if !hasLowercase && unicode.IsLower(char) {
+			hasLowercase = true
+		}
+		if !hasDigit && unicode.IsDigit(char) {
+			hasDigit = true
+		}
+		if !hasSpecialChar && specialCharRegex.MatchString(string(char)) {
+			hasSpecialChar = true
+		}
+	}
+
+	return hasUppercase && hasLowercase && hasDigit && hasSpecialChar
+}
+
+func IsPhoneNumberValid(phoneNumber string) bool {
+	phoneRegex := regexp.MustCompile(`^(\+)?\d+$`)
+	return phoneRegex.MatchString(phoneNumber)
+}
+
+func IsFullNameValid(fullName string) bool {
+	fullNameRegex := regexp.MustCompile(`^[a-zA-Z]{3,} [a-zA-Z]{3,}$`)
+	return fullNameRegex.MatchString(fullName)
 }
