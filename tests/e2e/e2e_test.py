@@ -5,9 +5,9 @@ from user import User
 
 user = User(
     gmail="gaponukz@knu.ua",
-    password="somepass",
+    password="qweasdzxcQ1",
     full_name="Alex Yah",
-    phone="380972748235",
+    phone="380984516456",
     allows_advertisement=True,
     purchased_route_ids=None,
 )
@@ -74,7 +74,7 @@ class TestAPI:
         response = session.post(f'{api_url}/api/auth/resetPassword', json={"gmail": user.gmail})
         assert response.status_code == 200
 
-        user.password = "newpassword"
+        user.password = "P@ssw0rd123"
     
         response = session.post(f'{api_url}/api/auth/confirmResetPassword', json={
             "gmail": user.gmail,
@@ -103,7 +103,7 @@ class TestAPI:
 
     def test_change_user_info(self, session: requests.Session):
         user.full_name = "Max Euq"
-        user.phone = "38001101010"
+        user.phone = "0984516456"
         user.allows_advertisement = not user.allows_advertisement
 
         response = session.post(f'{api_url}/api/auth/updateUserInfo', json={

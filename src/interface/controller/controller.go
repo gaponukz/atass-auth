@@ -155,6 +155,10 @@ func (c Controller) ConfirmRegistration(responseWriter http.ResponseWriter, requ
 			responseWriter.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		if err == errors.ErrUserNotValid {
+			responseWriter.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
 		responseWriter.WriteHeader(http.StatusInternalServerError)
 		return
